@@ -1,0 +1,19 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https://github.com/arclabs-studio/ARCPurchasing/compare/v",
+      "comment": "GitHub compare links for unreleased versions"
+    },
+    {
+      "pattern": "^https://github.com/arclabs-studio/ARCPurchasing/releases/tag/v",
+      "comment": "GitHub release links for unreleased versions"
+    },
+    {
+      "pattern": "^\\.\\./\\.\\./ARCKnowledge/",
+      "comment": "Relative links to ARCKnowledge documentation"
+    }
+  ],
+  "retryOn429": true,
+  "retryCount": 3,
+  "aliveStatusCodes": [200, 206]
+}
