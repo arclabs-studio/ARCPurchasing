@@ -15,3 +15,12 @@ xcuserdata/
 *.old
 /Pods
 /Carthage
+
+# ARCKnowledge skills (symlinks)
+.claude/skills/arc-data-layer
+.claude/skills/arc-presentation-layer
+.claude/skills/arc-project-setup
+.claude/skills/arc-quality-standards
+.claude/skills/arc-swift-architecture
+.claude/skills/arc-tdd-patterns
+.claude/skills/arc-workflow
