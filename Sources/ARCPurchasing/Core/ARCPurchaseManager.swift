@@ -98,10 +98,8 @@ public final class ARCPurchaseManager {
     ///   - config: Purchase configuration with API key and settings.
     ///   - analytics: Optional custom analytics handler.
     /// - Throws: ``PurchaseError`` if configuration fails.
-    public func configure(
-        with config: PurchaseConfiguration,
-        analytics: (any PurchaseAnalytics)? = nil
-    ) async throws {
+    public func configure(with config: PurchaseConfiguration,
+                          analytics: (any PurchaseAnalytics)? = nil) async throws {
         logger.info("[Purchase] Configuring ARCPurchaseManager")
 
         let provider = RevenueCatProvider(logger: logger)
@@ -165,12 +163,10 @@ public final class ARCPurchaseManager {
 
         switch result {
         case let .success(transaction):
-            await analytics?.track(.purchaseCompleted(
-                productID: product.id,
-                price: transaction.price ?? product.price,
-                currency: transaction.currencyCode ?? product.currencyCode,
-                transactionID: transaction.id
-            ))
+            await analytics?.track(.purchaseCompleted(productID: product.id,
+                                                      price: transaction.price ?? product.price,
+                                                      currency: transaction.currencyCode ?? product.currencyCode,
+                                                      transactionID: transaction.id))
             await refreshState()
 
         case .cancelled:

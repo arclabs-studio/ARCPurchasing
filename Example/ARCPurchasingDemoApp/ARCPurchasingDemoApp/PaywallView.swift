@@ -16,11 +16,9 @@ struct PaywallView: View {
     @State private var errorMessage: String?
     @State private var purchaseResult: PurchaseResult?
 
-    // Replace with your actual product IDs from App Store Connect
-    private let productIDs: Set<String> = [
-        "com.arclabs.demo.premium.monthly",
-        "com.arclabs.demo.premium.yearly"
-    ]
+    /// Replace with your actual product IDs from App Store Connect
+    private let productIDs: Set<String> = ["com.arclabs.demo.premium.monthly",
+                                           "com.arclabs.demo.premium.yearly"]
 
     var body: some View {
         NavigationStack {
@@ -48,10 +46,8 @@ struct PaywallView: View {
         .task {
             await loadProducts()
         }
-        .alert(
-            "Purchase Result",
-            isPresented: .constant(purchaseResult != nil)
-        ) {
+        .alert("Purchase Result",
+               isPresented: .constant(purchaseResult != nil)) {
             Button("OK") {
                 purchaseResult = nil
                 if purchaseResult?.isSuccess == true {
@@ -135,15 +131,13 @@ struct PaywallView: View {
                 // Products
                 VStack(spacing: 12) {
                     ForEach(products) { product in
-                        ProductCard(
-                            product: product,
-                            isPurchasing: purchaseManager.isPurchasing,
-                            onPurchase: {
-                                Task {
-                                    await purchase(product)
-                                }
-                            }
-                        )
+                        ProductCard(product: product,
+                                    isPurchasing: purchaseManager.isPurchasing,
+                                    onPurchase: {
+                                        Task {
+                                            await purchase(product)
+                                        }
+                                    })
                     }
                 }
                 .padding(.horizontal)

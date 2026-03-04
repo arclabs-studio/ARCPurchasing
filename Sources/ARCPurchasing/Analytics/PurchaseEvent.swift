@@ -26,12 +26,10 @@ public enum PurchaseEvent: Sendable {
     case purchaseStarted(productID: String)
 
     /// A purchase completed successfully.
-    case purchaseCompleted(
-        productID: String,
-        price: Decimal,
-        currency: String,
-        transactionID: String
-    )
+    case purchaseCompleted(productID: String,
+                           price: Decimal,
+                           currency: String,
+                           transactionID: String)
 
     /// A purchase was cancelled by the user.
     case purchaseCancelled(productID: String)

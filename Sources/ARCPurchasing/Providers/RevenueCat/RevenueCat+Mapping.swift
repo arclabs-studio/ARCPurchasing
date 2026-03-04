@@ -13,18 +13,16 @@ import RevenueCat
 extension StoreProduct {
     /// Converts a RevenueCat `StoreProduct` to ``PurchaseProduct``.
     func toPurchaseProduct() -> PurchaseProduct {
-        PurchaseProduct(
-            id: productIdentifier,
-            displayName: localizedTitle,
-            description: localizedDescription,
-            price: price as Decimal,
-            displayPrice: localizedPriceString,
-            currencyCode: currencyCode ?? "USD",
-            type: productType.toPurchaseProductType(),
-            subscriptionPeriod: subscriptionPeriod?.toPurchaseSubscriptionPeriod(),
-            introductoryOffer: introductoryDiscount?.toIntroductoryOffer(),
-            underlyingProduct: AnySendable(self)
-        )
+        PurchaseProduct(id: productIdentifier,
+                        displayName: localizedTitle,
+                        description: localizedDescription,
+                        price: price as Decimal,
+                        displayPrice: localizedPriceString,
+                        currencyCode: currencyCode ?? "USD",
+                        type: productType.toPurchaseProductType(),
+                        subscriptionPeriod: subscriptionPeriod?.toPurchaseSubscriptionPeriod(),
+                        introductoryOffer: introductoryDiscount?.toIntroductoryOffer(),
+                        underlyingProduct: AnySendable(self))
     }
 }
 
@@ -53,10 +51,8 @@ extension StoreProduct.ProductType {
 extension RevenueCat.SubscriptionPeriod {
     /// Converts RevenueCat subscription period to ``SubscriptionPeriod``.
     func toPurchaseSubscriptionPeriod() -> ARCPurchasing.SubscriptionPeriod {
-        ARCPurchasing.SubscriptionPeriod(
-            value: value,
-            unit: unit.toPurchasePeriodUnit()
-        )
+        ARCPurchasing.SubscriptionPeriod(value: value,
+                                         unit: unit.toPurchasePeriodUnit())
     }
 }
 
@@ -83,12 +79,10 @@ extension RevenueCat.SubscriptionPeriod.Unit {
 extension StoreProductDiscount {
     /// Converts RevenueCat discount to ``IntroductoryOffer``.
     func toIntroductoryOffer() -> IntroductoryOffer {
-        IntroductoryOffer(
-            price: price as Decimal,
-            displayPrice: localizedPriceString,
-            period: subscriptionPeriod.toPurchaseSubscriptionPeriod(),
-            paymentMode: paymentMode.toPaymentMode()
-        )
+        IntroductoryOffer(price: price as Decimal,
+                          displayPrice: localizedPriceString,
+                          period: subscriptionPeriod.toPurchaseSubscriptionPeriod(),
+                          paymentMode: paymentMode.toPaymentMode())
     }
 }
 
@@ -113,14 +107,12 @@ extension StoreProductDiscount.PaymentMode {
 extension StoreTransaction {
     /// Converts RevenueCat transaction to ``PurchaseTransaction``.
     func toPurchaseTransaction() -> PurchaseTransaction {
-        PurchaseTransaction(
-            id: transactionIdentifier,
-            productID: productIdentifier,
-            originalTransactionID: nil,
-            purchaseDate: purchaseDate,
-            expiresDate: nil,
-            isRestored: false
-        )
+        PurchaseTransaction(id: transactionIdentifier,
+                            productID: productIdentifier,
+                            originalTransactionID: nil,
+                            purchaseDate: purchaseDate,
+                            expiresDate: nil,
+                            isRestored: false)
     }
 }
 
@@ -129,14 +121,12 @@ extension StoreTransaction {
 extension EntitlementInfo {
     /// Converts RevenueCat entitlement info to ``Entitlement``.
     func toEntitlement() -> Entitlement {
-        Entitlement(
-            id: identifier,
-            isActive: isActive,
-            productIdentifier: productIdentifier,
-            expiresDate: expirationDate,
-            willRenew: willRenew,
-            periodType: periodType.toEntitlementPeriodType()
-        )
+        Entitlement(id: identifier,
+                    isActive: isActive,
+                    productIdentifier: productIdentifier,
+                    expiresDate: expirationDate,
+                    willRenew: willRenew,
+                    periodType: periodType.toEntitlementPeriodType())
     }
 }
 
@@ -169,14 +159,12 @@ extension CustomerInfo {
         // Find the active entitlement with the latest expiration
         let activeEntitlement = entitlements.active.values.first
 
-        return SubscriptionStatus(
-            isSubscribed: isSubscribed,
-            activeProductID: activeEntitlement?.productIdentifier,
-            expiresDate: activeEntitlement?.expirationDate,
-            willRenew: activeEntitlement?.willRenew ?? false,
-            isInBillingRetry: activeEntitlement?.billingIssueDetectedAt != nil,
-            isInGracePeriod: false,
-            managementURL: managementURL
-        )
+        return SubscriptionStatus(isSubscribed: isSubscribed,
+                                  activeProductID: activeEntitlement?.productIdentifier,
+                                  expiresDate: activeEntitlement?.expirationDate,
+                                  willRenew: activeEntitlement?.willRenew ?? false,
+                                  isInBillingRetry: activeEntitlement?.billingIssueDetectedAt != nil,
+                                  isInGracePeriod: false,
+                                  managementURL: managementURL)
     }
 }

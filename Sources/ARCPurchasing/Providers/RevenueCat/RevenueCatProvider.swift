@@ -61,11 +61,9 @@ public actor RevenueCatProvider: PurchaseProviding {
             case .storeKit2: .storeKit2
             }
 
-            Purchases.configure(
-                with: Configuration.Builder(withAPIKey: config.apiKey)
-                    .with(storeKitVersion: rcStoreKitVersion)
-                    .build()
-            )
+            Purchases.configure(with: Configuration.Builder(withAPIKey: config.apiKey)
+                .with(storeKitVersion: rcStoreKitVersion)
+                .build())
         }
 
         // Identify user if provided
@@ -144,11 +142,11 @@ public actor RevenueCatProvider: PurchaseProviding {
                 return .cancelled
             }
 
-            let purchaseTransaction = result.transaction?.toPurchaseTransaction() ?? PurchaseTransaction(
-                id: UUID().uuidString,
-                productID: product.id,
-                purchaseDate: Date()
-            )
+            let purchaseTransaction = result.transaction?
+                .toPurchaseTransaction() ?? PurchaseTransaction(id: UUID().uuidString,
+                                                                productID: product
+                                                                    .id,
+                                                                purchaseDate: Date())
 
             logger.info("[Purchase] Purchase successful: \(product.id)")
             return .success(purchaseTransaction)

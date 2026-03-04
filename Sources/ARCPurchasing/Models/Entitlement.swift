@@ -51,14 +51,12 @@ public struct Entitlement: Sendable, Equatable, Identifiable {
     ///   - expiresDate: Expiration date.
     ///   - willRenew: Whether it will auto-renew.
     ///   - periodType: The current period type.
-    public init(
-        id: String,
-        isActive: Bool,
-        productIdentifier: String? = nil,
-        expiresDate: Date? = nil,
-        willRenew: Bool = false,
-        periodType: EntitlementPeriodType = .normal
-    ) {
+    public init(id: String,
+                isActive: Bool,
+                productIdentifier: String? = nil,
+                expiresDate: Date? = nil,
+                willRenew: Bool = false,
+                periodType: EntitlementPeriodType = .normal) {
         self.id = id
         self.isActive = isActive
         self.productIdentifier = productIdentifier

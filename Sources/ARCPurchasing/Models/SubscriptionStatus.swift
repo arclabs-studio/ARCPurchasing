@@ -47,15 +47,13 @@ public struct SubscriptionStatus: Sendable, Equatable {
     ///   - isInBillingRetry: Whether in billing retry period.
     ///   - isInGracePeriod: Whether in grace period.
     ///   - managementURL: URL to manage subscription.
-    public init(
-        isSubscribed: Bool,
-        activeProductID: String? = nil,
-        expiresDate: Date? = nil,
-        willRenew: Bool = false,
-        isInBillingRetry: Bool = false,
-        isInGracePeriod: Bool = false,
-        managementURL: URL? = nil
-    ) {
+    public init(isSubscribed: Bool,
+                activeProductID: String? = nil,
+                expiresDate: Date? = nil,
+                willRenew: Bool = false,
+                isInBillingRetry: Bool = false,
+                isInGracePeriod: Bool = false,
+                managementURL: URL? = nil) {
         self.isSubscribed = isSubscribed
         self.activeProductID = activeProductID
         self.expiresDate = expiresDate

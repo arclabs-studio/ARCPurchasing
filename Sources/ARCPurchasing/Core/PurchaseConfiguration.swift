@@ -57,13 +57,11 @@ public struct PurchaseConfiguration: Sendable {
     ///   - debugLoggingEnabled: Enable debug logging (default: `false`).
     ///   - storeKitVersion: StoreKit version to use (default: `.storeKit2`).
     ///   - entitlementIdentifiers: Set of entitlement IDs to track.
-    public init(
-        apiKey: String,
-        userID: String? = nil,
-        debugLoggingEnabled: Bool = false,
-        storeKitVersion: StoreKitVersion = .storeKit2,
-        entitlementIdentifiers: Set<String> = []
-    ) {
+    public init(apiKey: String,
+                userID: String? = nil,
+                debugLoggingEnabled: Bool = false,
+                storeKitVersion: StoreKitVersion = .storeKit2,
+                entitlementIdentifiers: Set<String> = []) {
         self.apiKey = apiKey
         self.userID = userID
         self.debugLoggingEnabled = debugLoggingEnabled

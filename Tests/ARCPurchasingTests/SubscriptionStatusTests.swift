@@ -13,20 +13,17 @@ import Testing
 struct SubscriptionStatusTests {
     // MARK: - Initialization Tests
 
-    @Test("Initialization sets all properties correctly")
-    func initialization_setsAllProperties() {
+    @Test("Initialization sets all properties correctly") func initialization_setsAllProperties() {
         let expiresDate = Date().addingTimeInterval(30 * 24 * 60 * 60)
         let managementURL = URL(string: "https://apps.apple.com/account/subscriptions")
 
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            activeProductID: "com.app.premium.monthly",
-            expiresDate: expiresDate,
-            willRenew: true,
-            isInBillingRetry: false,
-            isInGracePeriod: false,
-            managementURL: managementURL
-        )
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        activeProductID: "com.app.premium.monthly",
+                                        expiresDate: expiresDate,
+                                        willRenew: true,
+                                        isInBillingRetry: false,
+                                        isInGracePeriod: false,
+                                        managementURL: managementURL)
 
         #expect(status.isSubscribed == true)
         #expect(status.activeProductID == "com.app.premium.monthly")
@@ -47,70 +44,52 @@ struct SubscriptionStatusTests {
 
     @Test("isActiveAndHealthy returns false when in billing retry")
     func isActiveAndHealthy_returnsFalseWhenInBillingRetry() {
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            isInBillingRetry: true
-        )
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        isInBillingRetry: true)
         #expect(status.isActiveAndHealthy == false)
     }
 
     @Test("isActiveAndHealthy returns false when in grace period")
     func isActiveAndHealthy_returnsFalseWhenInGracePeriod() {
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            isInGracePeriod: true
-        )
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        isInGracePeriod: true)
         #expect(status.isActiveAndHealthy == false)
     }
 
-    @Test("hasBillingIssues returns true when in billing retry")
-    func hasBillingIssues_returnsTrueWhenInBillingRetry() {
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            isInBillingRetry: true
-        )
+    @Test("hasBillingIssues returns true when in billing retry") func hasBillingIssues_returnsTrueWhenInBillingRetry() {
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        isInBillingRetry: true)
         #expect(status.hasBillingIssues == true)
     }
 
-    @Test("hasBillingIssues returns true when in grace period")
-    func hasBillingIssues_returnsTrueWhenInGracePeriod() {
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            isInGracePeriod: true
-        )
+    @Test("hasBillingIssues returns true when in grace period") func hasBillingIssues_returnsTrueWhenInGracePeriod() {
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        isInGracePeriod: true)
         #expect(status.hasBillingIssues == true)
     }
 
     @Test("isExpiringSoon returns true when expiring within 3 days and not renewing")
     func isExpiringSoon_returnsTrueWhenExpiringWithin3DaysNotRenewing() {
         let expiresDate = Date().addingTimeInterval(2 * 24 * 60 * 60) // 2 days
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            expiresDate: expiresDate,
-            willRenew: false
-        )
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        expiresDate: expiresDate,
+                                        willRenew: false)
         #expect(status.isExpiringSoon == true)
     }
 
-    @Test("isExpiringSoon returns false when will renew")
-    func isExpiringSoon_returnsFalseWhenWillRenew() {
+    @Test("isExpiringSoon returns false when will renew") func isExpiringSoon_returnsFalseWhenWillRenew() {
         let expiresDate = Date().addingTimeInterval(2 * 24 * 60 * 60) // 2 days
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            expiresDate: expiresDate,
-            willRenew: true
-        )
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        expiresDate: expiresDate,
+                                        willRenew: true)
         #expect(status.isExpiringSoon == false)
     }
 
-    @Test("daysUntilExpiration returns correct number of days")
-    func daysUntilExpiration_returnsCorrectDays() {
+    @Test("daysUntilExpiration returns correct number of days") func daysUntilExpiration_returnsCorrectDays() {
         let daysAhead = 10
         let expiresDate = Date().addingTimeInterval(Double(daysAhead) * 24 * 60 * 60)
-        let status = SubscriptionStatus(
-            isSubscribed: true,
-            expiresDate: expiresDate
-        )
+        let status = SubscriptionStatus(isSubscribed: true,
+                                        expiresDate: expiresDate)
 
         // Allow for slight timing differences
         let days = status.daysUntilExpiration

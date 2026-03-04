@@ -51,16 +51,14 @@ public struct PurchaseTransaction: Sendable, Equatable, Identifiable {
     ///   - isRestored: Whether this is a restored purchase.
     ///   - price: Price at time of purchase.
     ///   - currencyCode: Currency code.
-    public init(
-        id: String,
-        productID: String,
-        originalTransactionID: String? = nil,
-        purchaseDate: Date,
-        expiresDate: Date? = nil,
-        isRestored: Bool = false,
-        price: Decimal? = nil,
-        currencyCode: String? = nil
-    ) {
+    public init(id: String,
+                productID: String,
+                originalTransactionID: String? = nil,
+                purchaseDate: Date,
+                expiresDate: Date? = nil,
+                isRestored: Bool = false,
+                price: Decimal? = nil,
+                currencyCode: String? = nil) {
         self.id = id
         self.productID = productID
         self.originalTransactionID = originalTransactionID

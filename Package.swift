@@ -8,55 +8,31 @@
 
 import PackageDescription
 
-let package = Package(
-    name: "ARCPurchasing",
+let package = Package(name: "ARCPurchasing",
 
-    platforms: [
-        .iOS(.v17),
-        .macOS(.v14),
-        .watchOS(.v10),
-        .tvOS(.v17),
-        .visionOS(.v1)
-    ],
+                      platforms: [.iOS(.v17),
+                                  .macOS(.v14),
+                                  .watchOS(.v10),
+                                  .tvOS(.v17),
+                                  .visionOS(.v1)],
 
-    products: [
-        .library(
-            name: "ARCPurchasing",
-            targets: ["ARCPurchasing"]
-        )
-    ],
+                      products: [.library(name: "ARCPurchasing",
+                                          targets: ["ARCPurchasing"])],
 
-    dependencies: [
-        // RevenueCat SDK
-        .package(
-            url: "https://github.com/RevenueCat/purchases-ios",
-            from: "5.0.0"
-        ),
-        // ARC Labs packages
-        .package(
-            url: "https://github.com/arclabs-studio/ARCLogger",
-            from: "1.0.0"
-        )
-    ],
+                      dependencies: [// RevenueCat SDK
+                          .package(url: "https://github.com/RevenueCat/purchases-ios",
+                                   from: "5.0.0"),
+                          // ARC Labs packages
+                          .package(url: "https://github.com/arclabs-studio/ARCLogger",
+                                   from: "1.0.0")],
 
-    targets: [
-        .target(
-            name: "ARCPurchasing",
-            dependencies: [
-                .product(name: "RevenueCat", package: "purchases-ios"),
-                .product(name: "ARCLogger", package: "ARCLogger")
-            ],
-            path: "Sources/ARCPurchasing",
-            swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency")
-            ]
-        ),
-        .testTarget(
-            name: "ARCPurchasingTests",
-            dependencies: ["ARCPurchasing"],
-            path: "Tests/ARCPurchasingTests"
-        )
-    ],
+                      targets: [.target(name: "ARCPurchasing",
+                                        dependencies: [.product(name: "RevenueCat", package: "purchases-ios"),
+                                                       .product(name: "ARCLogger", package: "ARCLogger")],
+                                        path: "Sources/ARCPurchasing",
+                                        swiftSettings: [.enableUpcomingFeature("StrictConcurrency")]),
+                                .testTarget(name: "ARCPurchasingTests",
+                                            dependencies: ["ARCPurchasing"],
+                                            path: "Tests/ARCPurchasingTests")],
 
-    swiftLanguageModes: [.v6]
-)
+                      swiftLanguageModes: [.v6])

@@ -72,18 +72,16 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
     ///   - subscriptionPeriod: Subscription period (optional).
     ///   - introductoryOffer: Introductory offer (optional).
     ///   - underlyingProduct: Type-erased provider product.
-    public init(
-        id: String,
-        displayName: String,
-        description: String,
-        price: Decimal,
-        displayPrice: String,
-        currencyCode: String,
-        type: ProductType,
-        subscriptionPeriod: SubscriptionPeriod? = nil,
-        introductoryOffer: IntroductoryOffer? = nil,
-        underlyingProduct: AnySendable
-    ) {
+    public init(id: String,
+                displayName: String,
+                description: String,
+                price: Decimal,
+                displayPrice: String,
+                currencyCode: String,
+                type: ProductType,
+                subscriptionPeriod: SubscriptionPeriod? = nil,
+                introductoryOffer: IntroductoryOffer? = nil,
+                underlyingProduct: AnySendable) {
         self.id = id
         self.displayName = displayName
         self.description = description
@@ -174,12 +172,10 @@ public struct IntroductoryOffer: Sendable, Equatable {
     ///   - displayPrice: Localized price string.
     ///   - period: Offer period.
     ///   - paymentMode: Payment mode.
-    public init(
-        price: Decimal,
-        displayPrice: String,
-        period: SubscriptionPeriod,
-        paymentMode: PaymentMode
-    ) {
+    public init(price: Decimal,
+                displayPrice: String,
+                period: SubscriptionPeriod,
+                paymentMode: PaymentMode) {
         self.price = price
         self.displayPrice = displayPrice
         self.period = period

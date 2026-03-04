@@ -12,21 +12,18 @@ import Testing
 struct PurchaseProductTests {
     // MARK: - Initialization Tests
 
-    @Test("Initialization sets all properties correctly")
-    func initialization_setsAllProperties() {
+    @Test("Initialization sets all properties correctly") func initialization_setsAllProperties() {
         // Arrange & Act
-        let product = PurchaseProduct(
-            id: "com.arclabs.premium",
-            displayName: "Premium",
-            description: "Unlock all features",
-            price: 9.99,
-            displayPrice: "$9.99",
-            currencyCode: "USD",
-            type: .autoRenewableSubscription,
-            subscriptionPeriod: SubscriptionPeriod(value: 1, unit: .month),
-            introductoryOffer: nil,
-            underlyingProduct: AnySendable("mock")
-        )
+        let product = PurchaseProduct(id: "com.arclabs.premium",
+                                      displayName: "Premium",
+                                      description: "Unlock all features",
+                                      price: 9.99,
+                                      displayPrice: "$9.99",
+                                      currencyCode: "USD",
+                                      type: .autoRenewableSubscription,
+                                      subscriptionPeriod: SubscriptionPeriod(value: 1, unit: .month),
+                                      introductoryOffer: nil,
+                                      underlyingProduct: AnySendable("mock"))
 
         // Assert
         #expect(product.id == "com.arclabs.premium")
@@ -41,8 +38,7 @@ struct PurchaseProductTests {
         #expect(product.introductoryOffer == nil)
     }
 
-    @Test("Products with same ID are equal")
-    func productsWithSameID_areEqual() {
+    @Test("Products with same ID are equal") func productsWithSameID_areEqual() {
         // Arrange
         let product1 = PurchaseProduct.mock(id: "test.product")
         let product2 = PurchaseProduct.mock(id: "test.product", displayName: "Different Name")
@@ -51,8 +47,7 @@ struct PurchaseProductTests {
         #expect(product1 == product2)
     }
 
-    @Test("Products with different IDs are not equal")
-    func productsWithDifferentID_areNotEqual() {
+    @Test("Products with different IDs are not equal") func productsWithDifferentID_areNotEqual() {
         // Arrange
         let product1 = PurchaseProduct.mock(id: "test.product.1")
         let product2 = PurchaseProduct.mock(id: "test.product.2")
@@ -63,8 +58,7 @@ struct PurchaseProductTests {
 
     // MARK: - ProductType Tests
 
-    @Test("ProductType has all expected cases")
-    func productType_hasAllCases() {
+    @Test("ProductType has all expected cases") func productType_hasAllCases() {
         let allCases = ProductType.allCases
 
         #expect(allCases.count == 4)
@@ -76,8 +70,7 @@ struct PurchaseProductTests {
 
     // MARK: - SubscriptionPeriod Tests
 
-    @Test("SubscriptionPeriod equality works correctly")
-    func subscriptionPeriod_equalityWorks() {
+    @Test("SubscriptionPeriod equality works correctly") func subscriptionPeriod_equalityWorks() {
         let period1 = SubscriptionPeriod(value: 1, unit: .month)
         let period2 = SubscriptionPeriod(value: 1, unit: .month)
         let period3 = SubscriptionPeriod(value: 1, unit: .year)
@@ -88,14 +81,11 @@ struct PurchaseProductTests {
 
     // MARK: - IntroductoryOffer Tests
 
-    @Test("IntroductoryOffer initialization works correctly")
-    func introductoryOffer_initializesCorrectly() {
-        let offer = IntroductoryOffer(
-            price: 0,
-            displayPrice: "Free",
-            period: SubscriptionPeriod(value: 7, unit: .day),
-            paymentMode: .freeTrial
-        )
+    @Test("IntroductoryOffer initialization works correctly") func introductoryOffer_initializesCorrectly() {
+        let offer = IntroductoryOffer(price: 0,
+                                      displayPrice: "Free",
+                                      period: SubscriptionPeriod(value: 7, unit: .day),
+                                      paymentMode: .freeTrial)
 
         #expect(offer.price == 0)
         #expect(offer.displayPrice == "Free")
