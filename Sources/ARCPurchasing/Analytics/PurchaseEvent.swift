@@ -65,9 +65,9 @@ public enum PurchaseEvent: Sendable {
 
 // MARK: - Event Metadata
 
-extension PurchaseEvent {
+public extension PurchaseEvent {
     /// Event name for analytics tracking.
-    public var name: String {
+    var name: String {
         switch self {
         case .productViewed: "product_viewed"
         case .paywallViewed: "paywall_viewed"
@@ -86,7 +86,7 @@ extension PurchaseEvent {
     }
 
     /// Product ID associated with the event, if any.
-    public var productID: String? {
+    var productID: String? {
         switch self {
         case let .productViewed(productID),
              let .purchaseStarted(productID),

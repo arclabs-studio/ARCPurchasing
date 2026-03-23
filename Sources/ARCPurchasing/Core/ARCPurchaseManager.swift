@@ -279,14 +279,14 @@ public final class ARCPurchaseManager {
 
 // MARK: - Convenience Properties
 
-extension ARCPurchaseManager {
+public extension ARCPurchaseManager {
     /// Whether the user has any active subscription.
-    public var isSubscribed: Bool {
+    var isSubscribed: Bool {
         subscriptionStatus?.isSubscribed ?? false
     }
 
     /// Whether there are any active entitlements.
-    public var hasActiveEntitlements: Bool {
+    var hasActiveEntitlements: Bool {
         currentEntitlements.contains(where: \.isActive)
     }
 }

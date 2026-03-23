@@ -48,27 +48,27 @@ public enum PurchaseResult: Sendable, Equatable {
 
 // MARK: - Convenience Properties
 
-extension PurchaseResult {
+public extension PurchaseResult {
     /// Whether the purchase was successful.
-    public var isSuccess: Bool {
+    var isSuccess: Bool {
         if case .success = self { return true }
         return false
     }
 
     /// The transaction if purchase was successful, `nil` otherwise.
-    public var transaction: PurchaseTransaction? {
+    var transaction: PurchaseTransaction? {
         if case let .success(transaction) = self { return transaction }
         return nil
     }
 
     /// Whether the user cancelled the purchase.
-    public var isCancelled: Bool {
+    var isCancelled: Bool {
         if case .cancelled = self { return true }
         return false
     }
 
     /// Whether the purchase is pending approval.
-    public var isPending: Bool {
+    var isPending: Bool {
         if case .pending = self { return true }
         return false
     }
