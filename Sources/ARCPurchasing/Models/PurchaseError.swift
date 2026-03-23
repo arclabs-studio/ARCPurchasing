@@ -96,9 +96,9 @@ extension PurchaseError: LocalizedError {
 
 // MARK: - Recovery Suggestions
 
-extension PurchaseError {
+public extension PurchaseError {
     /// Suggests whether the user can retry the operation.
-    public var isRetryable: Bool {
+    var isRetryable: Bool {
         switch self {
         case .networkError, .timeout:
             true
@@ -110,7 +110,7 @@ extension PurchaseError {
     }
 
     /// User-friendly recovery suggestion.
-    public var recoverySuggestion: String? {
+    var recoverySuggestion: String? {
         switch self {
         case .notConfigured:
             String(localized: "Please restart the app and try again.")

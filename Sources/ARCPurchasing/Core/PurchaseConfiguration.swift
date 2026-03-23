@@ -72,11 +72,11 @@ public struct PurchaseConfiguration: Sendable {
 
 // MARK: - Validation
 
-extension PurchaseConfiguration {
+public extension PurchaseConfiguration {
     /// Validates the configuration.
     ///
     /// - Throws: ``PurchaseError/invalidAPIKey`` if API key is empty.
-    public func validate() throws {
+    func validate() throws {
         guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw PurchaseError.invalidAPIKey
         }

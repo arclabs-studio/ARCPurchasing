@@ -20,6 +20,7 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
     var fetchProductsResult: Result<[PurchaseProduct], PurchaseError> = .success([])
     var fetchOfferingsResult: Result<[String: [PurchaseProduct]], PurchaseError> = .success([:])
     var purchaseResult: PurchaseResult = .cancelled
+    var restoreError: Error?
     var hasEntitlementResult = false
     var currentEntitlementsResult: [Entitlement] = []
     var subscriptionStatusResult: SubscriptionStatus?
@@ -88,6 +89,9 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 
     func restorePurchases() async throws {
         restorePurchasesCalled = true
+        if let error = restoreError {
+            throw error
+        }
     }
 
     func syncPurchases() async throws {
@@ -120,6 +124,7 @@ extension MockPurchaseProvider {
     func reset() {
         isConfigured = false
         configureError = nil
+        restoreError = nil
         fetchProductsResult = .success([])
         fetchOfferingsResult = .success([:])
         purchaseResult = .cancelled

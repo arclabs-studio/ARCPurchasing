@@ -66,26 +66,26 @@ public struct SubscriptionStatus: Sendable, Equatable {
 
 // MARK: - Convenience Properties
 
-extension SubscriptionStatus {
+public extension SubscriptionStatus {
     /// Whether the subscription is active and in good standing.
-    public var isActiveAndHealthy: Bool {
+    var isActiveAndHealthy: Bool {
         isSubscribed && !isInBillingRetry && !isInGracePeriod
     }
 
     /// Whether the subscription has any billing issues.
-    public var hasBillingIssues: Bool {
+    var hasBillingIssues: Bool {
         isInBillingRetry || isInGracePeriod
     }
 
     /// Whether the subscription is about to expire (within 3 days).
-    public var isExpiringSoon: Bool {
+    var isExpiringSoon: Bool {
         guard let expiresDate, !willRenew else { return false }
         let threeDaysFromNow = Date().addingTimeInterval(3 * 24 * 60 * 60)
         return expiresDate < threeDaysFromNow
     }
 
     /// Number of days until expiration, or `nil` if no expiration date.
-    public var daysUntilExpiration: Int? {
+    var daysUntilExpiration: Int? {
         guard let expiresDate else { return nil }
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: Date(), to: expiresDate)

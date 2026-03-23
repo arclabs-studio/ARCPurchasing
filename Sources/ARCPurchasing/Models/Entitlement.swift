@@ -68,19 +68,19 @@ public struct Entitlement: Sendable, Equatable, Identifiable {
 
 // MARK: - Convenience Properties
 
-extension Entitlement {
+public extension Entitlement {
     /// Whether this entitlement is in a trial period.
-    public var isInTrial: Bool {
+    var isInTrial: Bool {
         periodType == .trial
     }
 
     /// Whether this entitlement is in an introductory period.
-    public var isInIntro: Bool {
+    var isInIntro: Bool {
         periodType == .intro
     }
 
     /// Whether this entitlement is about to expire (within 7 days).
-    public var isExpiringSoon: Bool {
+    var isExpiringSoon: Bool {
         guard let expiresDate else { return false }
         let sevenDaysFromNow = Date().addingTimeInterval(7 * 24 * 60 * 60)
         return expiresDate < sevenDaysFromNow

@@ -115,6 +115,25 @@ public final class ARCPurchaseManager {
         logger.info("[Purchase] ARCPurchaseManager configured successfully")
     }
 
+    // MARK: - Internal (Testing)
+
+    /// Configure with an injected provider. Only visible via `@testable import`.
+    func configure(with config: PurchaseConfiguration,
+                   provider: any PurchaseProviding,
+                   analytics: (any PurchaseAnalytics)? = nil) async throws {
+        logger.info("[Purchase] Configuring ARCPurchaseManager")
+
+        try await provider.configure(with: config)
+
+        self.provider = provider
+        self.analytics = analytics ?? DefaultPurchaseAnalytics(logger: logger)
+        isConfigured = true
+
+        await refreshState()
+
+        logger.info("[Purchase] ARCPurchaseManager configured successfully")
+    }
+
     // MARK: - Products
 
     /// Fetch products by identifiers.
@@ -234,9 +253,9 @@ public final class ARCPurchaseManager {
 
     /// Identify the current user.
     ///
-    /// - Parameter userID: User identifier to associate with purchases.
+    /// - Parameter userID: User identifier to associate with purchases. Pass `nil` to revert to anonymous mode.
     /// - Throws: ``PurchaseError`` if identification fails.
-    public func identify(userID: String) async throws {
+    public func identify(userID: String?) async throws {
         guard let provider else {
             throw PurchaseError.notConfigured
         }
@@ -260,14 +279,14 @@ public final class ARCPurchaseManager {
 
 // MARK: - Convenience Properties
 
-extension ARCPurchaseManager {
+public extension ARCPurchaseManager {
     /// Whether the user has any active subscription.
-    public var isSubscribed: Bool {
+    var isSubscribed: Bool {
         subscriptionStatus?.isSubscribed ?? false
     }
 
     /// Whether there are any active entitlements.
-    public var hasActiveEntitlements: Bool {
+    var hasActiveEntitlements: Bool {
         currentEntitlements.contains(where: \.isActive)
     }
 }
