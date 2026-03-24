@@ -146,6 +146,7 @@ private struct PaywallIfNeededModifier: ViewModifier {
                                offeringIdentifier: offeringIdentifier,
                                onPurchaseCompleted: onPurchaseCompleted)
             .task {
+                guard purchaseManager.isConfigured else { return }
                 let hasEntitlement = await purchaseManager.hasEntitlement(entitlement)
                 if !hasEntitlement {
                     isPresented = true
