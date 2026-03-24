@@ -63,14 +63,8 @@ public struct ARCPaywallView: View {
 
     public var body: some View {
         paywallView
-            .onPurchaseCompleted { _ in
-                Task { await purchaseManager.refreshState() }
-                onPurchaseCompleted?()
-            }
-            .onRestoreCompleted { _ in
-                Task { await purchaseManager.refreshState() }
-                onPurchaseCompleted?()
-            }
+            .onPurchaseCompleted { _ in handlePurchaseOrRestore() }
+            .onRestoreCompleted { _ in handlePurchaseOrRestore() }
             .task {
                 await purchaseManager.track(.paywallViewed(paywallID: offeringIdentifier))
                 await resolveOffering()
@@ -99,6 +93,11 @@ public struct ARCPaywallView: View {
 // MARK: - Private Helpers
 
 private extension ARCPaywallView {
+    func handlePurchaseOrRestore() {
+        Task { await purchaseManager.refreshState() }
+        onPurchaseCompleted?()
+    }
+
     func resolveOffering() async {
         guard let offeringIdentifier else { return }
         // ARCPurchasingUI is intentionally RevenueCat-coupled; Offering is a RevenueCat
