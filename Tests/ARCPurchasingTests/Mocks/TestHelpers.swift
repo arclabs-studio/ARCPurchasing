@@ -36,8 +36,7 @@ extension PurchaseProduct {
                         currencyCode: currencyCode,
                         type: type,
                         subscriptionPeriod: subscriptionPeriod,
-                        introductoryOffer: introductoryOffer,
-                        underlyingProduct: AnySendable("mock"))
+                        introductoryOffer: introductoryOffer)
     }
 
     /// Creates a mock subscription product.

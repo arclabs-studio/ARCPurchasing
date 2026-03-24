@@ -59,7 +59,12 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
 
     // MARK: - Initialization
 
-    /// Creates a new purchase product.
+    /// Creates a purchase product for external use (testing, mocking, previews).
+    ///
+    /// Products created with this initializer cannot be purchased —
+    /// `ARCPurchaseManager.purchase(_:)` will throw `PurchaseError.productNotFound`
+    /// since no underlying store product is attached. Use products returned by
+    /// `fetchProducts(for:)` or `fetchOfferings()` for actual purchases.
     ///
     /// - Parameters:
     ///   - id: Unique product identifier.
@@ -71,7 +76,6 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
     ///   - type: Product type.
     ///   - subscriptionPeriod: Subscription period (optional).
     ///   - introductoryOffer: Introductory offer (optional).
-    ///   - underlyingProduct: Type-erased provider product.
     public init(id: String,
                 displayName: String,
                 description: String,
@@ -80,8 +84,33 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
                 currencyCode: String,
                 type: ProductType,
                 subscriptionPeriod: SubscriptionPeriod? = nil,
-                introductoryOffer: IntroductoryOffer? = nil,
-                underlyingProduct: AnySendable) {
+                introductoryOffer: IntroductoryOffer? = nil) {
+        self.id = id
+        self.displayName = displayName
+        self.description = description
+        self.price = price
+        self.displayPrice = displayPrice
+        self.currencyCode = currencyCode
+        self.type = type
+        self.subscriptionPeriod = subscriptionPeriod
+        self.introductoryOffer = introductoryOffer
+        underlyingProduct = AnySendable(())
+    }
+
+    /// Creates a purchase product backed by a provider-specific store product.
+    ///
+    /// - Note: `underlyingProduct` must wrap a `StoreProduct` instance for
+    ///   RevenueCat-backed purchases to succeed.
+    init(id: String,
+         displayName: String,
+         description: String,
+         price: Decimal,
+         displayPrice: String,
+         currencyCode: String,
+         type: ProductType,
+         subscriptionPeriod: SubscriptionPeriod? = nil,
+         introductoryOffer: IntroductoryOffer? = nil,
+         underlyingProduct: AnySendable) {
         self.id = id
         self.displayName = displayName
         self.description = description
