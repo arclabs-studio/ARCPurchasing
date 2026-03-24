@@ -87,33 +87,17 @@ private struct PaywallFooterModifier: ViewModifier {
 
     @ViewBuilder private func paywallFooterView(content: Content) -> some View {
         if let offering {
-            if condensed {
-                content
-                    .paywallFooter(offering: offering, condensed: true) { _ in
-                        Task { await purchaseManager.refreshState() }
-                        onPurchaseCompleted?()
-                    }
-            } else {
-                content
-                    .paywallFooter(offering: offering) { _ in
-                        Task { await purchaseManager.refreshState() }
-                        onPurchaseCompleted?()
-                    }
-            }
+            content
+                .paywallFooter(offering: offering, condensed: condensed) { _ in
+                    Task { await purchaseManager.refreshState() }
+                    onPurchaseCompleted?()
+                }
         } else {
-            if condensed {
-                content
-                    .paywallFooter(condensed: true) { _ in
-                        Task { await purchaseManager.refreshState() }
-                        onPurchaseCompleted?()
-                    }
-            } else {
-                content
-                    .paywallFooter { _ in
-                        Task { await purchaseManager.refreshState() }
-                        onPurchaseCompleted?()
-                    }
-            }
+            content
+                .paywallFooter(condensed: condensed) { _ in
+                    Task { await purchaseManager.refreshState() }
+                    onPurchaseCompleted?()
+                }
         }
     }
 
