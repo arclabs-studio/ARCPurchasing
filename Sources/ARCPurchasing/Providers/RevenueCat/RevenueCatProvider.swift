@@ -56,12 +56,8 @@ public actor RevenueCatProvider: PurchaseProviding {
         await MainActor.run {
             Purchases.logLevel = config.debugLoggingEnabled ? .debug : .error
 
-            // swiftlint:disable switch_case_alignment
-            let rcStoreKitVersion: RevenueCat.StoreKitVersion = switch config.storeKitVersion {
-            case .storeKit1: .storeKit1
-            case .storeKit2: .storeKit2
-            }
-            // swiftlint:enable switch_case_alignment
+            let rcStoreKitVersion: RevenueCat.StoreKitVersion =
+                config.storeKitVersion == .storeKit1 ? .storeKit1 : .storeKit2
 
             Purchases.configure(with: Configuration.Builder(withAPIKey: config.apiKey)
                 .with(storeKitVersion: rcStoreKitVersion)
