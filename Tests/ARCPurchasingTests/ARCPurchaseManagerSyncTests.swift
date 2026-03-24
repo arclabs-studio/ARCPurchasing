@@ -56,12 +56,15 @@ struct ARCPurchaseManagerSyncTests {
             provider.simulatePurchaseStateChange()
         }
 
-        // Wait deterministically for refreshState() to complete.
-        // subscriptionStatus() is the last call in refreshState(), so by the time
-        // resume() is called both state assignments have already been made.
+        // Wait for subscriptionStatus() to be called inside refreshState().
+        // NOTE: onSubscriptionStatusCalled fires from WITHIN subscriptionStatus() before
+        // it returns, so our continuation is enqueued on @MainActor before refreshState()
+        // can assign `self.subscriptionStatus = result`. One Task.yield() lets that
+        // assignment run to completion before we assert.
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             provider.onSubscriptionStatusCalled = { continuation.resume() }
         }
+        await Task.yield()
 
         // Assert
         #expect(manager.currentEntitlements.count == 2)
