@@ -101,22 +101,8 @@ public final class ARCPurchaseManager {
     /// - Throws: ``PurchaseError`` if configuration fails.
     public func configure(with config: PurchaseConfiguration,
                           analytics: (any PurchaseAnalytics)? = nil) async throws {
-        logger.info("[Purchase] Configuring ARCPurchaseManager")
-
         let provider = RevenueCatProvider(logger: logger)
-        try await provider.configure(with: config)
-
-        self.provider = provider
-        self.analytics = analytics ?? DefaultPurchaseAnalytics(logger: logger)
-        isConfigured = true
-
-        // Initial state sync
-        await refreshState()
-
-        // Observe real-time subscription changes
-        startObservingPurchaseState(from: provider)
-
-        logger.info("[Purchase] ARCPurchaseManager configured successfully")
+        try await configure(with: config, provider: provider, analytics: analytics)
     }
 
     // MARK: - Internal (Testing)
