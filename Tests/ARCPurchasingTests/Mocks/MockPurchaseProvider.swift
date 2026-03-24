@@ -14,6 +14,15 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 
     var isConfigured = false
 
+    // MARK: - State Change Stream
+
+    var purchaseStateDidChangeContinuation: AsyncStream<Void>.Continuation?
+
+    /// Trigger a simulated purchase state change in tests.
+    func simulatePurchaseStateChange() {
+        purchaseStateDidChangeContinuation?.yield(())
+    }
+
     // MARK: - Mock Results
 
     var configureError: PurchaseError?
@@ -115,6 +124,12 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
         subscriptionStatusCalled = true
         return subscriptionStatusResult
     }
+
+    func purchaseStateDidChange() -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            self.purchaseStateDidChangeContinuation = continuation
+        }
+    }
 }
 
 // MARK: - Reset
@@ -122,6 +137,8 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 extension MockPurchaseProvider {
     /// Reset all state and call tracking.
     func reset() {
+        purchaseStateDidChangeContinuation?.finish()
+        purchaseStateDidChangeContinuation = nil
         isConfigured = false
         configureError = nil
         restoreError = nil
