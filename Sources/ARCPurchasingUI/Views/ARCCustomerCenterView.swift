@@ -49,6 +49,7 @@ import SwiftUI
     public var body: some View {
         CustomerCenterView()
             .task {
+                guard purchaseManager.isConfigured else { return }
                 await purchaseManager.track(.customerCenterOpened)
             }
             .onDisappear {
