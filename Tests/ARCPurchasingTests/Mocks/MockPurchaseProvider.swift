@@ -14,6 +14,15 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 
     var isConfigured = false
 
+    // MARK: - State Change Stream
+
+    var purchaseStateDidChangeContinuation: AsyncStream<Void>.Continuation?
+
+    /// Trigger a simulated purchase state change in tests.
+    func simulatePurchaseStateChange() {
+        purchaseStateDidChangeContinuation?.yield(())
+    }
+
     // MARK: - Mock Results
 
     var configureError: PurchaseError?
@@ -24,6 +33,12 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
     var hasEntitlementResult = false
     var currentEntitlementsResult: [Entitlement] = []
     var subscriptionStatusResult: SubscriptionStatus?
+
+    // MARK: - Hooks
+
+    var onCurrentEntitlementsCalled: (() -> Void)?
+    var onSubscriptionStatusCalled: (() -> Void)?
+    var onContinuationRegistered: (() -> Void)?
 
     // MARK: - Call Tracking
 
@@ -108,12 +123,21 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 
     func currentEntitlements() async -> [Entitlement] {
         currentEntitlementsCalled = true
+        onCurrentEntitlementsCalled?()
         return currentEntitlementsResult
     }
 
     func subscriptionStatus() async -> SubscriptionStatus? {
         subscriptionStatusCalled = true
+        onSubscriptionStatusCalled?()
         return subscriptionStatusResult
+    }
+
+    func purchaseStateDidChange() -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            self.purchaseStateDidChangeContinuation = continuation
+            self.onContinuationRegistered?()
+        }
     }
 }
 
@@ -122,6 +146,8 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 extension MockPurchaseProvider {
     /// Reset all state and call tracking.
     func reset() {
+        purchaseStateDidChangeContinuation?.finish()
+        purchaseStateDidChangeContinuation = nil
         isConfigured = false
         configureError = nil
         restoreError = nil
@@ -143,6 +169,9 @@ extension MockPurchaseProvider {
         syncPurchasesCalled = false
         hasEntitlementCalled = false
         hasEntitlementIdentifier = nil
+        onCurrentEntitlementsCalled = nil
+        onSubscriptionStatusCalled = nil
+        onContinuationRegistered = nil
         currentEntitlementsCalled = false
         subscriptionStatusCalled = false
         identifyCalled = false

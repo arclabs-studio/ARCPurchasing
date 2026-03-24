@@ -266,9 +266,15 @@ Follow the setup instructions in the [Example README](Example/ARCPurchasingDemoA
 
 ---
 
-## License
+## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or pull request on GitHub.
 
 ---
 

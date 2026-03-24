@@ -71,6 +71,15 @@ public final class DefaultPurchaseAnalytics: PurchaseAnalytics {
 
         case let .restorePurchasesFailed(error):
             logger.warning("[Analytics] Restore purchases failed: \(error)")
+
+        case let .paywallDismissed(paywallID):
+            logger.info("[Analytics] Paywall dismissed: \(paywallID ?? "default")")
+
+        case .customerCenterOpened:
+            logger.info("[Analytics] Customer Center opened")
+
+        case .customerCenterDismissed:
+            logger.info("[Analytics] Customer Center dismissed")
         }
     }
 }

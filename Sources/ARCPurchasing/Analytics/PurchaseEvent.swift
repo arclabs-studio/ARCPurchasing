@@ -61,6 +61,17 @@ public enum PurchaseEvent: Sendable {
 
     /// Restore purchases failed.
     case restorePurchasesFailed(error: String)
+
+    // MARK: - UI Events
+
+    /// A paywall was dismissed.
+    case paywallDismissed(paywallID: String?)
+
+    /// The Customer Center was opened.
+    case customerCenterOpened
+
+    /// The Customer Center was dismissed.
+    case customerCenterDismissed
 }
 
 // MARK: - Event Metadata
@@ -82,6 +93,9 @@ public extension PurchaseEvent {
         case .restorePurchasesStarted: "restore_purchases_started"
         case .restorePurchasesCompleted: "restore_purchases_completed"
         case .restorePurchasesFailed: "restore_purchases_failed"
+        case .paywallDismissed: "paywall_dismissed"
+        case .customerCenterOpened: "customer_center_opened"
+        case .customerCenterDismissed: "customer_center_dismissed"
         }
     }
 
@@ -98,7 +112,9 @@ public extension PurchaseEvent {
              let .subscriptionCancelled(productID),
              let .subscriptionExpired(productID):
             productID
-        case .paywallViewed, .restorePurchasesStarted, .restorePurchasesCompleted, .restorePurchasesFailed:
+        case .paywallViewed, .paywallDismissed,
+             .restorePurchasesStarted, .restorePurchasesCompleted, .restorePurchasesFailed,
+             .customerCenterOpened, .customerCenterDismissed:
             nil
         }
     }

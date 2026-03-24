@@ -54,4 +54,12 @@ public protocol PurchaseProviding: ProductProviding, TransactionProviding, Entit
     ///
     /// Operations will fail with ``PurchaseError/notConfigured`` if this is `false`.
     var isConfigured: Bool { get async }
+
+    /// An async stream that emits whenever the customer's purchase state changes.
+    ///
+    /// Subscribe to this stream after configuration to receive real-time updates
+    /// when subscriptions renew, expire, or billing issues are resolved.
+    ///
+    /// - Returns: An ``AsyncStream`` that emits `Void` on each state change.
+    func purchaseStateDidChange() -> AsyncStream<Void>
 }

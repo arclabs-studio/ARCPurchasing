@@ -102,20 +102,6 @@ extension StoreProductDiscount.PaymentMode {
     }
 }
 
-// MARK: - Transaction Mapping
-
-extension StoreTransaction {
-    /// Converts RevenueCat transaction to ``PurchaseTransaction``.
-    func toPurchaseTransaction() -> PurchaseTransaction {
-        PurchaseTransaction(id: transactionIdentifier,
-                            productID: productIdentifier,
-                            originalTransactionID: nil,
-                            purchaseDate: purchaseDate,
-                            expiresDate: nil,
-                            isRestored: false)
-    }
-}
-
 // MARK: - Entitlement Mapping
 
 extension EntitlementInfo {
@@ -159,12 +145,17 @@ extension CustomerInfo {
         // Find the active entitlement with the latest expiration
         let activeEntitlement = entitlements.active.values.first
 
+        // Grace period: billing issue detected but subscription is still active (RC keeps it alive briefly)
+        let isInGracePeriod = activeEntitlement.map {
+            $0.billingIssueDetectedAt != nil && $0.isActive
+        } ?? false
+
         return SubscriptionStatus(isSubscribed: isSubscribed,
                                   activeProductID: activeEntitlement?.productIdentifier,
                                   expiresDate: activeEntitlement?.expirationDate,
                                   willRenew: activeEntitlement?.willRenew ?? false,
                                   isInBillingRetry: activeEntitlement?.billingIssueDetectedAt != nil,
-                                  isInGracePeriod: false,
+                                  isInGracePeriod: isInGracePeriod,
                                   managementURL: managementURL)
     }
 }

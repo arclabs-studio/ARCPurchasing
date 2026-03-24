@@ -78,6 +78,7 @@ public final class ARCPurchaseManager {
     private var provider: (any PurchaseProviding)?
     private var analytics: (any PurchaseAnalytics)?
     private let logger: ARCLogger
+    private var stateObservationTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -100,19 +101,8 @@ public final class ARCPurchaseManager {
     /// - Throws: ``PurchaseError`` if configuration fails.
     public func configure(with config: PurchaseConfiguration,
                           analytics: (any PurchaseAnalytics)? = nil) async throws {
-        logger.info("[Purchase] Configuring ARCPurchaseManager")
-
         let provider = RevenueCatProvider(logger: logger)
-        try await provider.configure(with: config)
-
-        self.provider = provider
-        self.analytics = analytics ?? DefaultPurchaseAnalytics(logger: logger)
-        isConfigured = true
-
-        // Initial state sync
-        await refreshState()
-
-        logger.info("[Purchase] ARCPurchaseManager configured successfully")
+        try await configure(with: config, provider: provider, analytics: analytics)
     }
 
     // MARK: - Internal (Testing)
@@ -130,6 +120,9 @@ public final class ARCPurchaseManager {
         isConfigured = true
 
         await refreshState()
+
+        // Observe real-time subscription changes
+        startObservingPurchaseState(from: provider)
 
         logger.info("[Purchase] ARCPurchaseManager configured successfully")
     }
@@ -204,6 +197,21 @@ public final class ARCPurchaseManager {
         return result
     }
 
+    /// Sync purchases with the provider's backend.
+    ///
+    /// Use this after detecting purchases made outside the app (family sharing,
+    /// promo codes, web purchases) to ensure local state is up to date.
+    ///
+    /// - Throws: ``PurchaseError`` if synchronization fails.
+    public func syncPurchases() async throws {
+        guard let provider else {
+            throw PurchaseError.notConfigured
+        }
+
+        try await provider.syncPurchases()
+        await refreshState()
+    }
+
     /// Restore previous purchases.
     ///
     /// - Throws: ``PurchaseError`` if restoration fails.
@@ -236,6 +244,15 @@ public final class ARCPurchaseManager {
     public func hasEntitlement(_ identifier: String) async -> Bool {
         guard let provider else { return false }
         return await provider.hasEntitlement(identifier)
+    }
+
+    /// Track a purchase analytics event.
+    ///
+    /// Use this to emit custom or UI-layer events through the configured analytics handler.
+    ///
+    /// - Parameter event: The ``PurchaseEvent`` to track.
+    public func track(_ event: PurchaseEvent) async {
+        await analytics?.track(event)
     }
 
     /// Refresh entitlements and subscription status.
@@ -272,8 +289,25 @@ public final class ARCPurchaseManager {
             throw PurchaseError.notConfigured
         }
 
+        stateObservationTask?.cancel()
+        stateObservationTask = nil
+
         try await provider.logOut()
         await refreshState()
+    }
+}
+
+// MARK: - Private Helpers
+
+private extension ARCPurchaseManager {
+    func startObservingPurchaseState(from provider: any PurchaseProviding) {
+        stateObservationTask?.cancel()
+        stateObservationTask = Task { [weak self] in
+            for await _ in provider.purchaseStateDidChange() {
+                guard !Task.isCancelled, let self else { break }
+                await refreshState()
+            }
+        }
     }
 }
 
