@@ -102,20 +102,6 @@ extension StoreProductDiscount.PaymentMode {
     }
 }
 
-// MARK: - Transaction Mapping
-
-extension StoreTransaction {
-    /// Converts RevenueCat transaction to ``PurchaseTransaction``.
-    func toPurchaseTransaction() -> PurchaseTransaction {
-        PurchaseTransaction(id: transactionIdentifier,
-                            productID: productIdentifier,
-                            originalTransactionID: nil,
-                            purchaseDate: purchaseDate,
-                            expiresDate: nil,
-                            isRestored: false)
-    }
-}
-
 // MARK: - Entitlement Mapping
 
 extension EntitlementInfo {
