@@ -252,6 +252,91 @@ struct PurchaseTests {
 
 ---
 
+## ✅ Best Practices
+
+### Configuration
+
+- **Configure early**: Call `ARCPurchaseManager.shared.configure(with:)` in `App.init`, before any view appears.
+- **Separate API keys by environment**: Use xcconfig files or build configurations to inject the RevenueCat API key. Never hardcode it in source.
+- **Debug logging**: Enable `debugLoggingEnabled` only in DEBUG builds — it logs sensitive purchase data.
+
+```swift
+@main
+struct MyApp: App {
+    init() {
+        Task {
+            let config = PurchaseConfiguration(
+                apiKey: Bundle.main.infoDictionary?["RC_API_KEY"] as? String ?? ""
+            )
+            try await ARCPurchaseManager.shared.configure(with: config)
+        }
+    }
+}
+```
+
+### Entitlement Design
+
+- **Use a single `"premium"` entitlement** rather than per-feature entitlements. This keeps entitlement checking simple and makes it easy to restructure which features are included in premium tiers without changing code.
+- Define the entitlement identifier as a constant in your app to avoid typos.
+
+### Error Handling
+
+- **Handle all `PurchaseResult` cases**: `.success`, `.cancelled`, `.pending`, `.requiresAction`, and `.unknown`.
+- Show user-friendly messages for `PurchaseError` — use the built-in `localizedDescription` and `recoverySuggestion`.
+- Track purchase failures via `PurchaseAnalytics` to identify systemic issues.
+
+### UI
+
+- **Always include a Restore Purchases button** — it is required by App Store Review Guidelines §3.1.1.
+- Show loading states while `isPurchasing` or `isRestoring` is `true` — disable purchase buttons to prevent duplicate taps.
+- Defer to RevenueCatUI paywalls (via `ARCPaywallView`) for the default case — they are A/B testable from the dashboard without app updates.
+
+### Security
+
+- API keys belong in xcconfig, not source code.
+- Validate entitlements server-side for high-value content.
+- Do not cache entitlement state locally beyond the session — always call `hasEntitlement(_:)` which reflects the live RevenueCat state.
+
+---
+
+## 📋 App Revenue Checklist
+
+Use this checklist before submitting a new app or adding IAP to an existing one.
+
+### Pre-Development
+- [ ] App Store Connect products created (subscriptions, consumables, or non-consumables)
+- [ ] Products in "Ready to Submit" state in App Store Connect
+- [ ] RevenueCat project configured with entitlements and offerings
+- [ ] Entitlement identifier agreed upon and documented
+
+### Implementation
+- [ ] `ARCPurchaseManager.configure()` called in `App.init` before any view appears
+- [ ] RevenueCat API key stored in xcconfig (not hardcoded)
+- [ ] All `PurchaseResult` cases handled in the purchase flow
+- [ ] Restore Purchases accessible from paywall and/or Settings
+- [ ] Loading state shown while `isPurchasing == true`
+- [ ] Error messages user-friendly (use `PurchaseError.recoverySuggestion`)
+- [ ] `PurchaseAnalytics` implementation wired to your analytics provider
+- [ ] Unit tests written using `MockPurchaseProvider`
+
+### Pre-Launch
+- [ ] Full purchase flow tested in sandbox on device (not just simulator)
+- [ ] Restore flow tested in sandbox
+- [ ] App Store screenshot for IAP submitted to App Store Connect (if required)
+- [ ] Auto-renewal disclosure visible on paywall
+- [ ] Restore Purchases button visible on paywall
+- [ ] Terms of Service and Privacy Policy links on paywall
+- [ ] App Store Review Guidelines §3.1 compliance verified
+- [ ] Localized pricing reviewed for key markets (US, EU, JP, BR, IN)
+
+### Post-Launch
+- [ ] RevenueCat Dashboard monitored for first 7 days post-launch
+- [ ] Trial-to-paid conversion baseline measured
+- [ ] Churn rate monitored weekly
+- [ ] First A/B test for pricing or paywall copy planned
+
+---
+
 ## Example App
 
 See `Example/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstrating:
