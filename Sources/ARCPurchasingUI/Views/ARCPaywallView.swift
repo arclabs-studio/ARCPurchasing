@@ -70,7 +70,7 @@ public struct ARCPaywallView: View {
                 await resolveOffering()
             }
         #if os(iOS)
-            .onDismiss {
+            .onRequestedDismissal {
                 Task {
                     await purchaseManager.track(.paywallDismissed(paywallID: offeringIdentifier))
                 }
