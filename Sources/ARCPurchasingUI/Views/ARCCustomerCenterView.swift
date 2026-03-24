@@ -54,8 +54,8 @@ import SwiftUI
             }
             .onDisappear {
                 Task {
-                    await purchaseManager.refreshState()
                     await purchaseManager.track(.customerCenterDismissed)
+                    await purchaseManager.refreshState()
                 }
                 onDismiss?()
             }
