@@ -45,17 +45,23 @@ struct ARCPurchaseManagerSyncTests {
         let manager = ARCPurchaseManager()
         try await manager.configure(with: .mock(), provider: provider)
 
-        // Yield to let the observation Task start and register the stream continuation.
-        // The Task is @MainActor so it runs cooperatively — one sleep cycle is enough.
-        try await Task.sleep(for: .milliseconds(10))
-
-        // Change provider state then trigger the stream
+        // Set provider state to reflect what a renewal would deliver
         provider.currentEntitlementsResult = [.mock(id: "premium"), .mock(id: "pro")]
         provider.subscriptionStatusResult = .mock(isSubscribed: true)
-        provider.simulatePurchaseStateChange()
 
-        // Wait for the observation task to call refreshState()
-        try await Task.sleep(for: .milliseconds(50))
+        // Schedule emission in a separate Task. On @MainActor, tasks run in enqueue order,
+        // so the observation Task (created by configure) registers its stream continuation
+        // before this emission fires.
+        Task { @MainActor [provider] in
+            provider.simulatePurchaseStateChange()
+        }
+
+        // Wait deterministically for refreshState() to complete.
+        // subscriptionStatus() is the last call in refreshState(), so by the time
+        // resume() is called both state assignments have already been made.
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            provider.onSubscriptionStatusCalled = { continuation.resume() }
+        }
 
         // Assert
         #expect(manager.currentEntitlements.count == 2)

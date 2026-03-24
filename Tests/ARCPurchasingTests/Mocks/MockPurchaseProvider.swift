@@ -34,6 +34,12 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
     var currentEntitlementsResult: [Entitlement] = []
     var subscriptionStatusResult: SubscriptionStatus?
 
+    // MARK: - Hooks
+
+    var onCurrentEntitlementsCalled: (() -> Void)?
+    var onSubscriptionStatusCalled: (() -> Void)?
+    var onContinuationRegistered: (() -> Void)?
+
     // MARK: - Call Tracking
 
     var configureCalled = false
@@ -117,17 +123,20 @@ final class MockPurchaseProvider: PurchaseProviding, @unchecked Sendable {
 
     func currentEntitlements() async -> [Entitlement] {
         currentEntitlementsCalled = true
+        onCurrentEntitlementsCalled?()
         return currentEntitlementsResult
     }
 
     func subscriptionStatus() async -> SubscriptionStatus? {
         subscriptionStatusCalled = true
+        onSubscriptionStatusCalled?()
         return subscriptionStatusResult
     }
 
     func purchaseStateDidChange() -> AsyncStream<Void> {
         AsyncStream { continuation in
             self.purchaseStateDidChangeContinuation = continuation
+            self.onContinuationRegistered?()
         }
     }
 }
@@ -160,6 +169,9 @@ extension MockPurchaseProvider {
         syncPurchasesCalled = false
         hasEntitlementCalled = false
         hasEntitlementIdentifier = nil
+        onCurrentEntitlementsCalled = nil
+        onSubscriptionStatusCalled = nil
+        onContinuationRegistered = nil
         currentEntitlementsCalled = false
         subscriptionStatusCalled = false
         identifyCalled = false
