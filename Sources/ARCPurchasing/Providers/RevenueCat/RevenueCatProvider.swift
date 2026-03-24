@@ -223,12 +223,13 @@ public actor RevenueCatProvider: PurchaseProviding {
 
     public nonisolated func purchaseStateDidChange() -> AsyncStream<Void> {
         AsyncStream { continuation in
-            Task {
+            let task = Task {
                 for await _ in Purchases.shared.customerInfoStream {
                     continuation.yield(())
                 }
                 continuation.finish()
             }
+            continuation.onTermination = { _ in task.cancel() }
         }
     }
 }
