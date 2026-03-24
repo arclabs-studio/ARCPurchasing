@@ -260,6 +260,15 @@ public final class ARCPurchaseManager {
         return await provider.hasEntitlement(identifier)
     }
 
+    /// Track a purchase analytics event.
+    ///
+    /// Use this to emit custom or UI-layer events through the configured analytics handler.
+    ///
+    /// - Parameter event: The ``PurchaseEvent`` to track.
+    public func track(_ event: PurchaseEvent) async {
+        await analytics?.track(event)
+    }
+
     /// Refresh entitlements and subscription status.
     ///
     /// Call this to manually refresh state, for example after

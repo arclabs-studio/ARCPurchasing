@@ -27,6 +27,10 @@ struct PurchaseEventTests {
         #expect(PurchaseEvent.restorePurchasesStarted.name == "restore_purchases_started")
         #expect(PurchaseEvent.restorePurchasesCompleted.name == "restore_purchases_completed")
         #expect(PurchaseEvent.restorePurchasesFailed(error: "e").name == "restore_purchases_failed")
+        // UI events
+        #expect(PurchaseEvent.paywallDismissed(paywallID: nil).name == "paywall_dismissed")
+        #expect(PurchaseEvent.customerCenterOpened.name == "customer_center_opened")
+        #expect(PurchaseEvent.customerCenterDismissed.name == "customer_center_dismissed")
     }
 
     // MARK: - Product ID Tests
@@ -50,5 +54,8 @@ struct PurchaseEventTests {
         #expect(PurchaseEvent.restorePurchasesStarted.productID == nil)
         #expect(PurchaseEvent.restorePurchasesCompleted.productID == nil)
         #expect(PurchaseEvent.restorePurchasesFailed(error: "e").productID == nil)
+        #expect(PurchaseEvent.paywallDismissed(paywallID: "pw").productID == nil)
+        #expect(PurchaseEvent.customerCenterOpened.productID == nil)
+        #expect(PurchaseEvent.customerCenterDismissed.productID == nil)
     }
 }

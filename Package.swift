@@ -17,7 +17,9 @@ let package = Package(name: "ARCPurchasing",
                                   .visionOS(.v1)],
 
                       products: [.library(name: "ARCPurchasing",
-                                          targets: ["ARCPurchasing"])],
+                                          targets: ["ARCPurchasing"]),
+                                 .library(name: "ARCPurchasingUI",
+                                          targets: ["ARCPurchasingUI"])],
 
                       dependencies: [// RevenueCat SDK
                           .package(url: "https://github.com/RevenueCat/purchases-ios",
@@ -33,6 +35,16 @@ let package = Package(name: "ARCPurchasing",
                                         swiftSettings: [.enableUpcomingFeature("StrictConcurrency")]),
                                 .testTarget(name: "ARCPurchasingTests",
                                             dependencies: ["ARCPurchasing"],
-                                            path: "Tests/ARCPurchasingTests")],
+                                            path: "Tests/ARCPurchasingTests"),
+                                .target(name: "ARCPurchasingUI",
+                                        dependencies: ["ARCPurchasing",
+                                                       .product(name: "RevenueCat", package: "purchases-ios"),
+                                                       .product(name: "RevenueCatUI",
+                                                                package: "purchases-ios")],
+                                        path: "Sources/ARCPurchasingUI",
+                                        swiftSettings: [.enableUpcomingFeature("StrictConcurrency")]),
+                                .testTarget(name: "ARCPurchasingUITests",
+                                            dependencies: ["ARCPurchasingUI"],
+                                            path: "Tests/ARCPurchasingUITests")],
 
                       swiftLanguageModes: [.v6])
