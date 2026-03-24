@@ -78,6 +78,7 @@ public final class ARCPurchaseManager {
     private var provider: (any PurchaseProviding)?
     private var analytics: (any PurchaseAnalytics)?
     private let logger: ARCLogger
+    private var stateObservationTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -112,6 +113,9 @@ public final class ARCPurchaseManager {
         // Initial state sync
         await refreshState()
 
+        // Observe real-time subscription changes
+        startObservingPurchaseState(from: provider)
+
         logger.info("[Purchase] ARCPurchaseManager configured successfully")
     }
 
@@ -130,6 +134,9 @@ public final class ARCPurchaseManager {
         isConfigured = true
 
         await refreshState()
+
+        // Observe real-time subscription changes
+        startObservingPurchaseState(from: provider)
 
         logger.info("[Purchase] ARCPurchaseManager configured successfully")
     }
@@ -204,6 +211,21 @@ public final class ARCPurchaseManager {
         return result
     }
 
+    /// Sync purchases with the provider's backend.
+    ///
+    /// Use this after detecting purchases made outside the app (family sharing,
+    /// promo codes, web purchases) to ensure local state is up to date.
+    ///
+    /// - Throws: ``PurchaseError`` if synchronization fails.
+    public func syncPurchases() async throws {
+        guard let provider else {
+            throw PurchaseError.notConfigured
+        }
+
+        try await provider.syncPurchases()
+        await refreshState()
+    }
+
     /// Restore previous purchases.
     ///
     /// - Throws: ``PurchaseError`` if restoration fails.
@@ -272,8 +294,25 @@ public final class ARCPurchaseManager {
             throw PurchaseError.notConfigured
         }
 
+        stateObservationTask?.cancel()
+        stateObservationTask = nil
+
         try await provider.logOut()
         await refreshState()
+    }
+}
+
+// MARK: - Private Helpers
+
+private extension ARCPurchaseManager {
+    func startObservingPurchaseState(from provider: any PurchaseProviding) {
+        stateObservationTask?.cancel()
+        stateObservationTask = Task { [weak self] in
+            for await _ in provider.purchaseStateDidChange() {
+                guard !Task.isCancelled, let self else { break }
+                await refreshState()
+            }
+        }
     }
 }
 
