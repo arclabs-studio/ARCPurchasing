@@ -56,10 +56,12 @@ public actor RevenueCatProvider: PurchaseProviding {
         await MainActor.run {
             Purchases.logLevel = config.debugLoggingEnabled ? .debug : .error
 
+            // swiftlint:disable switch_case_alignment
             let rcStoreKitVersion: RevenueCat.StoreKitVersion = switch config.storeKitVersion {
             case .storeKit1: .storeKit1
             case .storeKit2: .storeKit2
             }
+            // swiftlint:enable switch_case_alignment
 
             Purchases.configure(with: Configuration.Builder(withAPIKey: config.apiKey)
                 .with(storeKitVersion: rcStoreKitVersion)
@@ -142,16 +144,22 @@ public actor RevenueCatProvider: PurchaseProviding {
                 return .cancelled
             }
 
-            let purchaseTransaction = result.transaction?
-                .toPurchaseTransaction() ?? PurchaseTransaction(id: UUID().uuidString,
-                                                                productID: product
-                                                                    .id,
-                                                                purchaseDate: Date())
+            let purchaseTransaction = result.transaction.map {
+                PurchaseTransaction(id: $0.transactionIdentifier,
+                                    productID: product.id,
+                                    purchaseDate: $0.purchaseDate,
+                                    price: product.price,
+                                    currencyCode: product.currencyCode)
+            } ?? PurchaseTransaction(id: UUID().uuidString,
+                                     productID: product.id,
+                                     purchaseDate: Date(),
+                                     price: product.price,
+                                     currencyCode: product.currencyCode)
 
             logger.info("[Purchase] Purchase successful: \(product.id)")
             return .success(purchaseTransaction)
         } catch {
-            return mapPurchaseError(error, productID: product.id)
+            return try mapPurchaseError(error, productID: product.id)
         }
     }
 
@@ -210,6 +218,19 @@ public actor RevenueCatProvider: PurchaseProviding {
             return nil
         }
     }
+
+    // MARK: - Purchase State Stream
+
+    public nonisolated func purchaseStateDidChange() -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            Task {
+                for await _ in Purchases.shared.customerInfoStream {
+                    continuation.yield(())
+                }
+                continuation.finish()
+            }
+        }
+    }
 }
 
 // MARK: - Private Helpers
@@ -221,7 +242,7 @@ extension RevenueCatProvider {
         }
     }
 
-    private func mapPurchaseError(_ error: Error, productID _: String) -> PurchaseResult {
+    private func mapPurchaseError(_ error: Error, productID _: String) throws -> PurchaseResult {
         if let rcError = error as? RevenueCat.ErrorCode {
             switch rcError {
             case .purchaseCancelledError:
@@ -230,13 +251,19 @@ extension RevenueCatProvider {
                 return .pending
             case .purchaseNotAllowedError:
                 return .requiresAction("Purchases not allowed on this device")
+            case .networkError, .offlineConnectionError:
+                logger.error("[Purchase] Network error: \(rcError)")
+                throw PurchaseError.networkError(error.localizedDescription)
+            case .storeProblemError, .unknownBackendError, .unexpectedBackendResponseError:
+                logger.error("[Purchase] Store error: \(rcError)")
+                throw PurchaseError.purchaseFailed(error.localizedDescription)
             default:
                 logger.error("[Purchase] Purchase failed: \(rcError)")
-                return .unknown
+                throw PurchaseError.purchaseFailed(rcError.localizedDescription)
             }
         }
 
         logger.error("[Purchase] Purchase failed with unknown error: \(error.localizedDescription)")
-        return .unknown
+        throw PurchaseError.purchaseFailed(error.localizedDescription)
     }
 }
