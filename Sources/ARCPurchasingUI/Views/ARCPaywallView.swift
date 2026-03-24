@@ -101,6 +101,13 @@ public struct ARCPaywallView: View {
 private extension ARCPaywallView {
     func resolveOffering() async {
         guard let offeringIdentifier else { return }
-        offering = try? await Purchases.shared.offerings().offering(identifier: offeringIdentifier)
+        // ARCPurchasingUI is intentionally RevenueCat-coupled; Offering is a RevenueCat
+        // type required by PaywallView and cannot be obtained through ARCPurchasing alone.
+        guard purchaseManager.isConfigured else { return }
+        do {
+            offering = try await Purchases.shared.offerings().offering(identifier: offeringIdentifier)
+        } catch {
+            // Falls back to PaywallView() which uses the current default offering.
+        }
     }
 }
