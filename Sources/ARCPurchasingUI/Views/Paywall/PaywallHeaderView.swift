@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Header section of the paywall.
 ///
-/// Renders: decorative blob, uppercase header label, icon badge, title, subtitle.
+/// Renders: icon badge, title, subtitle.
 struct PaywallHeaderView: View {
     let configuration: PaywallConfiguration
     let theme: PaywallTheme
