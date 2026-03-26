@@ -6,6 +6,7 @@
 //
 
 import ARCPurchasing
+import ARCPurchasingUI
 import SwiftUI
 
 struct ContentView: View {
@@ -121,7 +122,7 @@ struct ContentView: View {
             }
             .navigationTitle("ARCPurchasing Demo")
             .sheet(isPresented: $showPaywall) {
-                PaywallView()
+                DemoPaywallScreen()
             }
         }
     }

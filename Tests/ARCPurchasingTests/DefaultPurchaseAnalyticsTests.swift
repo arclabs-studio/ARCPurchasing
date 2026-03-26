@@ -9,7 +9,6 @@ import Foundation
 import Testing
 @testable import ARCPurchasing
 
-@Suite("DefaultPurchaseAnalytics Tests")
 struct DefaultPurchaseAnalyticsTests {
     // MARK: - All Events
 

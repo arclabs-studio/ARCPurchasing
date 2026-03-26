@@ -6,8 +6,6 @@
 //
 
 import ARCPurchasing
-import RevenueCat
-import RevenueCatUI
 import SwiftUI
 
 public extension View {
@@ -15,13 +13,16 @@ public extension View {
     ///
     /// - Parameters:
     ///   - isPresented: Binding that controls sheet presentation.
-    ///   - offeringIdentifier: Optional RC offering identifier. If `nil`, the default offering is used.
+    ///   - configuration: Paywall content configuration.
+    ///   - theme: Visual theme. Defaults to `PaywallTheme.default`.
     ///   - onPurchaseCompleted: Called after a successful purchase or restore.
     func presentARCPaywall(isPresented: Binding<Bool>,
-                           offeringIdentifier: String? = nil,
+                           configuration: PaywallConfiguration,
+                           theme: PaywallTheme = .default,
                            onPurchaseCompleted: (() -> Void)? = nil) -> some View {
         sheet(isPresented: isPresented) {
-            ARCPaywallView(offeringIdentifier: offeringIdentifier,
+            ARCPaywallView(configuration: configuration,
+                           theme: theme,
                            onDismiss: { isPresented.wrappedValue = false },
                            onPurchaseCompleted: {
                                isPresented.wrappedValue = false
@@ -37,88 +38,26 @@ public extension View {
     ///
     /// - Parameters:
     ///   - entitlement: The entitlement identifier required to suppress the paywall.
-    ///   - offeringIdentifier: Optional RC offering identifier. If `nil`, the default offering is used.
+    ///   - configuration: Paywall content configuration.
+    ///   - theme: Visual theme. Defaults to `PaywallTheme.default`.
     ///   - onPurchaseCompleted: Called after a successful purchase or restore.
     func presentARCPaywallIfNeeded(entitlement: String,
-                                   offeringIdentifier: String? = nil,
+                                   configuration: PaywallConfiguration,
+                                   theme: PaywallTheme = .default,
                                    onPurchaseCompleted: (() -> Void)? = nil) -> some View {
         modifier(PaywallIfNeededModifier(entitlement: entitlement,
-                                         offeringIdentifier: offeringIdentifier,
+                                         configuration: configuration,
+                                         theme: theme,
                                          onPurchaseCompleted: onPurchaseCompleted))
     }
 }
-
-#if os(iOS)
-public extension View {
-    /// Attach a paywall footer below this view's content.
-    ///
-    /// Wraps RevenueCatUI's `.paywallFooter()` and automatically refreshes
-    /// `ARCPurchaseManager` state after purchases.
-    ///
-    /// - Parameters:
-    ///   - offeringIdentifier: Optional RC offering identifier. If `nil`, the default offering is used.
-    ///   - condensed: When `true`, renders the condensed footer variant.
-    ///   - onPurchaseCompleted: Called after a successful purchase or restore.
-    func arcPaywallFooter(offeringIdentifier: String? = nil,
-                          condensed: Bool = false,
-                          onPurchaseCompleted: (() -> Void)? = nil) -> some View {
-        modifier(PaywallFooterModifier(offeringIdentifier: offeringIdentifier,
-                                       condensed: condensed,
-                                       onPurchaseCompleted: onPurchaseCompleted))
-    }
-}
-
-// MARK: - PaywallFooterModifier
-
-private struct PaywallFooterModifier: ViewModifier {
-    let offeringIdentifier: String?
-    let condensed: Bool
-    let onPurchaseCompleted: (() -> Void)?
-
-    @State private var purchaseManager = ARCPurchaseManager.shared
-    @State private var offering: Offering?
-
-    func body(content: Content) -> some View {
-        paywallFooterView(content: content)
-            .task(id: offeringIdentifier) {
-                await resolveOffering()
-            }
-    }
-
-    @ViewBuilder private func paywallFooterView(content: Content) -> some View {
-        if let offering {
-            content
-                .paywallFooter(offering: offering, condensed: condensed) { _ in
-                    Task { await purchaseManager.refreshState() }
-                    onPurchaseCompleted?()
-                }
-        } else {
-            content
-                .paywallFooter(condensed: condensed) { _ in
-                    Task { await purchaseManager.refreshState() }
-                    onPurchaseCompleted?()
-                }
-        }
-    }
-
-    private func resolveOffering() async {
-        guard let offeringIdentifier, purchaseManager.isConfigured else { return }
-        // ARCPurchasingUI is intentionally RevenueCat-coupled; Offering is a RevenueCat
-        // type required by paywallFooter. Falls back to default offering on failure.
-        do {
-            offering = try await Purchases.shared.offerings().offering(identifier: offeringIdentifier)
-        } catch {
-            // Falls back to paywallFooter() which uses the current default offering.
-        }
-    }
-}
-#endif
 
 // MARK: - PaywallIfNeededModifier
 
 private struct PaywallIfNeededModifier: ViewModifier {
     let entitlement: String
-    let offeringIdentifier: String?
+    let configuration: PaywallConfiguration
+    let theme: PaywallTheme
     let onPurchaseCompleted: (() -> Void)?
 
     @State private var isPresented = false
@@ -127,7 +66,8 @@ private struct PaywallIfNeededModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .presentARCPaywall(isPresented: $isPresented,
-                               offeringIdentifier: offeringIdentifier,
+                               configuration: configuration,
+                               theme: theme,
                                onPurchaseCompleted: onPurchaseCompleted)
             .task {
                 guard purchaseManager.isConfigured else { return }

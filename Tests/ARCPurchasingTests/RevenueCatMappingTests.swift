@@ -11,7 +11,6 @@ import Testing
 
 // MARK: - ProductType Mapping
 
-@Suite("RevenueCat ProductType Mapping")
 struct ProductTypeMappingTests {
     @Test("consumable maps correctly") func consumable() {
         #expect(StoreProduct.ProductType.consumable.toPurchaseProductType() == .consumable)
@@ -33,7 +32,6 @@ struct ProductTypeMappingTests {
 
 // MARK: - PeriodUnit Mapping
 
-@Suite("RevenueCat PeriodUnit Mapping")
 struct PeriodUnitMappingTests {
     @Test("day maps correctly") func day() {
         #expect(RevenueCat.SubscriptionPeriod.Unit.day.toPurchasePeriodUnit() == .day)
@@ -54,7 +52,6 @@ struct PeriodUnitMappingTests {
 
 // MARK: - PaymentMode Mapping
 
-@Suite("RevenueCat PaymentMode Mapping")
 struct PaymentModeMappingTests {
     @Test("freeTrial maps correctly") func freeTrial() {
         #expect(StoreProductDiscount.PaymentMode.freeTrial.toPaymentMode() == .freeTrial)
@@ -71,7 +68,6 @@ struct PaymentModeMappingTests {
 
 // MARK: - PeriodType Mapping
 
-@Suite("RevenueCat PeriodType Mapping")
 struct PeriodTypeMappingTests {
     @Test("normal maps correctly") func normal() {
         #expect(RevenueCat.PeriodType.normal.toEntitlementPeriodType() == .normal)
@@ -93,7 +89,6 @@ struct PeriodTypeMappingTests {
 
 // MARK: - SubscriptionPeriod Mapping
 
-@Suite("RevenueCat SubscriptionPeriod Mapping")
 struct SubscriptionPeriodMappingTests {
     @Test("value and unit are preserved") func valueAndUnit() {
         let rcPeriod = RevenueCat.SubscriptionPeriod(value: 3, unit: .month)
