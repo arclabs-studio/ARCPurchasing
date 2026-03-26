@@ -205,8 +205,13 @@ public struct ARCPaywallView: View {
             Image(systemName: "xmark.circle.fill")
                 .font(.title2)
                 .foregroundStyle(theme.accentColor)
-                .padding(16)
+                // Explicit 44×44 touch target per HIG
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
+        // 16pt inset from top and trailing edges per HIG spacing guidelines
+        .padding(.top, 16)
+        .padding(.trailing, 16)
     }
     #endif
 }
@@ -355,19 +360,6 @@ private enum LoadingState {
     case loading
     case loaded
     case error(String)
-}
-
-// MARK: - SubscriptionPeriod totalMonths
-
-private extension SubscriptionPeriod {
-    var totalMonths: Int {
-        switch unit {
-        case .day: max(1, value / 30)
-        case .week: max(1, value / 4)
-        case .month: value
-        case .year: value * 12
-        }
-    }
 }
 
 // MARK: - Preview Helpers
