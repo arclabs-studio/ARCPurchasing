@@ -9,7 +9,6 @@ import Foundation
 import Testing
 @testable import ARCPurchasing
 
-@Suite("ARCPurchaseManager Sync & Stream Tests")
 @MainActor
 struct ARCPurchaseManagerSyncTests {
     // MARK: - Sync Purchases Tests

@@ -9,7 +9,6 @@ import Foundation
 import Testing
 @testable import ARCPurchasing
 
-@Suite("SubscriptionStatus Tests")
 struct SubscriptionStatusTests {
     // MARK: - Initialization Tests
 

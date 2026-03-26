@@ -8,7 +8,6 @@
 import Testing
 @testable import ARCPurchasing
 
-@Suite("PurchaseError Tests")
 struct PurchaseErrorTests {
     // MARK: - Error Description Tests
 

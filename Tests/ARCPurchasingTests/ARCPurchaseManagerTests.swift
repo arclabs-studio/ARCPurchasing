@@ -9,7 +9,6 @@ import Foundation
 import Testing
 @testable import ARCPurchasing
 
-@Suite("ARCPurchaseManager Tests")
 @MainActor
 struct ARCPurchaseManagerTests {
     // MARK: - Configuration Tests

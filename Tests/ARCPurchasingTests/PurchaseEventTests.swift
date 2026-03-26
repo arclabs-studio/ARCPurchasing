@@ -8,7 +8,6 @@
 import Testing
 @testable import ARCPurchasing
 
-@Suite("PurchaseEvent Tests")
 struct PurchaseEventTests {
     // MARK: - Event Name Tests
 

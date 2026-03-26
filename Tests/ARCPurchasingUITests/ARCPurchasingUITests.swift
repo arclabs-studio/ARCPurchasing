@@ -16,7 +16,6 @@ import Testing
 /// Behavioral testing requires a configured `Purchases.shared` instance
 /// and happens in the Example app.
 @MainActor
-@Suite("ARCPurchasingUI Compile Verification")
 struct ARCPurchasingUITests {
     // MARK: - Helpers
 
