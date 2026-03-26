@@ -365,11 +365,11 @@ private enum LoadingState {
 // MARK: - Preview Helpers
 
 public extension ARCPaywallView {
+    // swiftlint:disable line_length
     /// Mock products for use in Xcode Previews and the demo app.
     ///
     /// These products have no underlying StoreProduct and cannot be purchased,
     /// but they render the full paywall UI correctly for visual verification.
-    // swiftlint:disable line_length
     static let previewMockProducts: [PurchaseProduct] = [PurchaseProduct(id: "com.app.premium.monthly",
                                                                          displayName: "Monthly",
                                                                          description: "Monthly subscription",
