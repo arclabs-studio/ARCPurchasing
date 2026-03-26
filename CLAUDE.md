@@ -9,7 +9,7 @@ Protocol-based in-app purchase management for ARC Labs apps, powered by RevenueC
 | Module | Import | Purpose |
 |--------|--------|---------|
 | `ARCPurchasing` | Core logic | `ARCPurchaseManager`, protocols, models, RevenueCat provider |
-| `ARCPurchasingUI` | SwiftUI views | `ARCPaywallView`, paywall modifiers — wraps RevenueCatUI |
+| `ARCPurchasingUI` | SwiftUI views | `ARCPaywallView` (fully custom), `PaywallConfiguration`, `PaywallTheme`, paywall modifiers |
 
 **Rule**: Only `ARCPurchasingUI` may expose RevenueCat types (e.g., `Offering`). The core `ARCPurchasing` module must never leak RevenueCat types in its public API.
 
@@ -39,8 +39,11 @@ RevenueCatProvider (Providers/RevenueCat/)
 | `Sources/ARCPurchasing/Core/ARCPurchaseManager.swift` | Entry point, observable state |
 | `Sources/ARCPurchasing/Core/PurchaseConfiguration.swift` | Configuration struct |
 | `Sources/ARCPurchasing/Protocols/PurchaseProviding.swift` | Main protocol |
-| `Sources/ARCPurchasingUI/Views/ARCPaywallView.swift` | Primary paywall view |
-| `Sources/ARCPurchasingUI/ViewModifiers/PaywallModifiers.swift` | `.presentARCPaywall`, `.presentARCPaywallIfNeeded`, `.arcPaywallFooter` |
+| `Sources/ARCPurchasingUI/Configuration/PaywallConfiguration.swift` | Paywall content config (copy, features, product IDs, URLs) |
+| `Sources/ARCPurchasingUI/Configuration/PaywallTheme.swift` | Visual theme (colors, `.darkBurgundy`, `.lightGold`) |
+| `Sources/ARCPurchasingUI/Views/ARCPaywallView.swift` | Primary paywall view — fully custom SwiftUI, no RevenueCatUI |
+| `Sources/ARCPurchasingUI/Views/Paywall/` | Internal subviews (header, features, product cards, footer) |
+| `Sources/ARCPurchasingUI/ViewModifiers/PaywallModifiers.swift` | `.presentARCPaywall`, `.presentARCPaywallIfNeeded` |
 | `Tests/ARCPurchasingTests/Mocks/MockAnalytics.swift` | Mock for testing |
 
 ---

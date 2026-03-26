@@ -85,7 +85,81 @@ if let product = products.first {
 }
 ```
 
-### SwiftUI Integration
+### SwiftUI Paywall
+
+`ARCPurchasingUI` provides a fully custom, configurable paywall — no RevenueCat dashboard required.
+
+```swift
+import ARCPurchasingUI
+
+// Present as a sheet
+.presentARCPaywall(
+    isPresented: $showPaywall,
+    configuration: PaywallConfiguration(
+        headerLabel: "MY APP PREMIUM",
+        title: "Unlock the full\nexperience",
+        subtitle: "Everything you need, nothing you don't",
+        iconName: "star.circle.fill",
+        features: [
+            .init(highlightedText: "Unlimited access",
+                  description: "to all premium features"),
+            .init(highlightedText: "No ads",
+                  description: "clean, distraction-free experience"),
+        ],
+        highlightedProductID: "com.app.premium.yearly",
+        lifetimeProductID: "com.app.premium.lifetime",
+        lifetimeSubtitle: "One-time purchase · Limited offer",
+        ctaButtonTitle: "Start Premium",
+        termsOfServiceURL: tosURL,
+        privacyPolicyURL: privacyURL
+    ),
+    theme: .darkBurgundy   // or .lightGold, or a custom PaywallTheme
+)
+
+// Auto-present only when user lacks the entitlement
+.presentARCPaywallIfNeeded(
+    entitlement: "premium",
+    configuration: config,
+    theme: .darkBurgundy
+)
+
+// Embed directly
+ARCPaywallView(configuration: config, theme: .lightGold)
+```
+
+#### Themes
+
+Two built-in theme presets match the reference designs:
+
+| Preset | Background | Accents |
+|--------|-----------|---------|
+| `.darkBurgundy` | Deep burgundy (#541311) | Gold |
+| `.lightGold` | Warm gold | Dark burgundy |
+
+Build a custom theme by constructing `PaywallTheme` directly and passing any `Color` values you need.
+
+#### Xcode Previews and Demo Apps
+
+Pass `previewProducts` to render the paywall without a RevenueCat connection:
+
+```swift
+ARCPaywallView(
+    configuration: config,
+    theme: .darkBurgundy,
+    previewProducts: ARCPaywallView.previewMockProducts  // built-in mock products
+)
+```
+
+#### Features
+
+- Savings badges auto-calculated ("SAVE 42%") from monthly price baseline
+- Lifetime product rendered as a separate full-width dashed card
+- Restore Purchases, Terms, Privacy links built in (App Store requirement)
+- Analytics tracked automatically via `PurchaseEvent`
+
+---
+
+### SwiftUI Integration (manual)
 
 ```swift
 import SwiftUI
@@ -287,9 +361,10 @@ struct MyApp: App {
 
 ### UI
 
-- **Always include a Restore Purchases button** — it is required by App Store Review Guidelines §3.1.1.
+- **Always include a Restore Purchases button** — it is required by App Store Review Guidelines §3.1.1. `ARCPaywallView` includes this automatically.
 - Show loading states while `isPurchasing` or `isRestoring` is `true` — disable purchase buttons to prevent duplicate taps.
-- Defer to RevenueCatUI paywalls (via `ARCPaywallView`) for the default case — they are A/B testable from the dashboard without app updates.
+- Use `ARCPaywallView` with `PaywallConfiguration` and `PaywallTheme` for a fully custom, code-driven paywall. Pass `previewProducts` for Xcode Previews and demo builds.
+- Use `.presentARCPaywallIfNeeded(entitlement:configuration:)` as a single-line entitlement gate on any view.
 
 ### Security
 
