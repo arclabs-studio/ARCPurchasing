@@ -58,7 +58,7 @@ private struct FeatureRowView: View {
     private var richText: Text {
         Text(feature.highlightedText)
             .fontWeight(.bold)
-            .foregroundColor(theme.accentTextColor)
+            .foregroundStyle(theme.accentTextColor)
             + Text(" ")
             + Text(feature.description)
     }
