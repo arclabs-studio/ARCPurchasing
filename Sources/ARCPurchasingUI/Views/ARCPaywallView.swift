@@ -102,6 +102,13 @@ public struct ARCPaywallView: View {
                 paywallContent
             }
         }
+        .overlay(alignment: .topTrailing) {
+            #if os(iOS)
+            if loadingState.isLoaded {
+                dismissButton
+            }
+            #endif
+        }
         .task {
             await purchaseManager.track(.paywallViewed(paywallID: configuration.offeringIdentifier))
             await loadProducts()
@@ -141,57 +148,62 @@ public struct ARCPaywallView: View {
     // MARK: - Paywall Content
 
     private var paywallContent: some View {
-        VStack(spacing: 20) {
-            PaywallHeaderView(configuration: configuration,
-                              theme: theme)
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 16) {
+                    PaywallHeaderView(configuration: configuration,
+                                      theme: theme)
 
-            if !configuration.features.isEmpty {
-                PaywallFeatureListView(features: configuration.features,
-                                       theme: theme)
-            }
-
-            Spacer(minLength: 0)
-
-            // Products
-            VStack(spacing: 10) {
-                if !subscriptionProducts.isEmpty {
-                    PaywallSubscriptionCardsView(products: subscriptionProducts,
-                                                 selectedProductID: selectedProductID,
-                                                 highlightedProductID: configuration.highlightedProductID,
-                                                 badges: computedBadges,
-                                                 theme: theme,
-                                                 onSelect: { selectedProductID = $0.id })
+                    if !configuration.features.isEmpty {
+                        PaywallFeatureListView(features: configuration.features,
+                                               theme: theme)
+                    }
                 }
-
-                if let lifetime = lifetimeProduct {
-                    PaywallLifetimeCardView(product: lifetime,
-                                            subtitle: configuration.lifetimeSubtitle,
-                                            isSelected: selectedProductID == lifetime.id,
-                                            theme: theme,
-                                            onTap: { selectedProductID = lifetime.id })
-                }
+                .padding(.bottom, 12)
             }
-            .padding(.horizontal, 24)
+            .scrollBounceBehavior(.basedOnSize)
 
-            PaywallContinueButton(title: configuration.ctaButtonTitle,
-                                  isLoading: purchaseManager.isPurchasing,
-                                  isDisabled: selectedProductID == nil,
+            // Pinned bottom: products + CTA + footer always visible
+            VStack(spacing: 0) {
+                // Products pinned above CTA — keeps selection spatially adjacent to action
+                VStack(spacing: 10) {
+                    if !subscriptionProducts.isEmpty {
+                        PaywallSubscriptionCardsView(products: subscriptionProducts,
+                                                     selectedProductID: selectedProductID,
+                                                     highlightedProductID: configuration.highlightedProductID,
+                                                     badges: computedBadges,
+                                                     theme: theme,
+                                                     onSelect: { selectedProductID = $0.id })
+                    }
+
+                    if let lifetime = lifetimeProduct {
+                        PaywallLifetimeCardView(product: lifetime,
+                                                subtitle: configuration.lifetimeSubtitle,
+                                                isSelected: selectedProductID == lifetime.id,
+                                                theme: theme,
+                                                onTap: { selectedProductID = lifetime.id })
+                    }
+                }
+                .padding(.vertical, 16)
+
+                PaywallContinueButton(title: configuration.ctaButtonTitle,
+                                      isLoading: purchaseManager.isPurchasing,
+                                      isDisabled: selectedProductID == nil,
+                                      theme: theme,
+                                      action: { Task { await purchase() } })
+
+                PaywallFooterView(renewalDisclosure: configuration.renewalDisclosure,
+                                  termsOfServiceURL: configuration.termsOfServiceURL,
+                                  privacyPolicyURL: configuration.privacyPolicyURL,
                                   theme: theme,
-                                  action: { Task { await purchase() } })
-
-            PaywallFooterView(renewalDisclosure: configuration.renewalDisclosure,
-                              termsOfServiceURL: configuration.termsOfServiceURL,
-                              privacyPolicyURL: configuration.privacyPolicyURL,
-                              theme: theme,
-                              onRestore: { Task { await restore() } },
-                              isRestoring: purchaseManager.isRestoring)
-        }
-        .padding(.bottom, 8)
-        #if os(iOS)
-            .overlay(alignment: .topTrailing) {
-                dismissButton
+                                  onRestore: { Task { await restore() } },
+                                  isRestoring: purchaseManager.isRestoring)
             }
-        #endif
+            .padding(.top, 8)
+            .background(theme.backgroundColor)
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
+            .shadow(color: .black.opacity(0.18), radius: 16, x: 0, y: -4)
+        }
     }
 
     #if os(iOS)
@@ -209,8 +221,7 @@ public struct ARCPaywallView: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        // 16pt inset from top and trailing edges per HIG spacing guidelines
-        .padding(.top, 16)
+        .padding(.top, 20)
         .padding(.trailing, 16)
     }
     #endif
@@ -360,6 +371,11 @@ private enum LoadingState {
     case loading
     case loaded
     case error(String)
+
+    var isLoaded: Bool {
+        if case .loaded = self { return true }
+        return false
+    }
 }
 
 // MARK: - Preview Helpers
