@@ -38,18 +38,18 @@ struct PaywallHeaderView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 36)
+        .padding(.top, 24)
         .padding(.horizontal, 24)
     }
 
     private func iconBadge(named name: String) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(theme.accentColor)
-                .frame(width: 80, height: 80)
+                .frame(width: 64, height: 64)
 
             Image(systemName: name)
-                .font(.system(size: 36, weight: .medium))
+                .font(.system(size: 28, weight: .medium))
                 .foregroundStyle(theme.ctaTextColor)
         }
     }

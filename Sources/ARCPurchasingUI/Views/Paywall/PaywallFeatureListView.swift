@@ -46,11 +46,12 @@ private struct FeatureRowView: View {
                 .font(.subheadline)
                 .foregroundStyle(theme.primaryTextColor)
                 .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
 
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 9)
+        .padding(.vertical, 7)
         .background(theme.cardBackgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius - 4, style: .continuous))
     }
