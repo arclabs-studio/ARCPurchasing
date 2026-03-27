@@ -17,8 +17,8 @@ struct PaywallHeaderView: View {
     var body: some View {
         VStack(spacing: 12) {
             // Icon badge
-            if let iconName = configuration.iconName {
-                iconBadge(named: iconName)
+            if configuration.iconAssetName != nil || configuration.iconName != nil {
+                iconBadge
             }
 
             // Title
@@ -42,15 +42,23 @@ struct PaywallHeaderView: View {
         .padding(.horizontal, 24)
     }
 
-    private func iconBadge(named name: String) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(theme.accentColor)
+    @ViewBuilder private var iconBadge: some View {
+        if let assetName = configuration.iconAssetName {
+            Image(assetName)
+                .resizable()
+                .scaledToFill()
                 .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        } else if let name = configuration.iconName {
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(theme.accentColor)
+                    .frame(width: 64, height: 64)
 
-            Image(systemName: name)
-                .font(.system(size: 28, weight: .medium))
-                .foregroundStyle(theme.ctaTextColor)
+                Image(systemName: name)
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundStyle(theme.ctaTextColor)
+            }
         }
     }
 }

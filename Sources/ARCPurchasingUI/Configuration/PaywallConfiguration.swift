@@ -48,9 +48,13 @@ public struct PaywallConfiguration: Sendable {
     /// Optional subtitle below the title.
     public let subtitle: String?
 
-    /// SF Symbol name or asset catalog image name used as the paywall icon.
-    /// Rendered inside a rounded-rectangle badge. Pass `nil` to hide the icon.
+    /// SF Symbol name used as the paywall icon badge. Fallback when `iconAssetName` is nil.
+    /// Rendered inside a coloured rounded-rectangle badge. Pass `nil` to hide the icon.
     public let iconName: String?
+
+    /// Asset catalog image name used as the paywall icon. When set, renders the real app icon
+    /// with rounded corners instead of the SF Symbol badge.
+    public let iconAssetName: String?
 
     // MARK: - Features
 
@@ -111,7 +115,8 @@ public struct PaywallConfiguration: Sendable {
     ///   - headerLabel: Uppercase label above the icon. `nil` to hide.
     ///   - title: Main paywall title.
     ///   - subtitle: Optional subtitle below the title.
-    ///   - iconName: SF Symbol or asset catalog name for the icon badge.
+    ///   - iconName: SF Symbol name for the icon badge (ignored when `iconAssetName` is set).
+    ///   - iconAssetName: Asset catalog image name. When set, renders the real app icon.
     ///   - features: Ordered list of feature rows.
     ///   - offeringIdentifier: RC offering identifier. `nil` uses the default.
     ///   - highlightedProductID: Product ID to pre-select and highlight.
@@ -127,6 +132,7 @@ public struct PaywallConfiguration: Sendable {
                 title: String,
                 subtitle: String? = nil,
                 iconName: String? = nil,
+                iconAssetName: String? = nil,
                 features: [Feature] = [],
                 offeringIdentifier: String? = nil,
                 highlightedProductID: String? = nil,
@@ -142,6 +148,7 @@ public struct PaywallConfiguration: Sendable {
         self.title = title
         self.subtitle = subtitle
         self.iconName = iconName
+        self.iconAssetName = iconAssetName
         self.features = features
         self.offeringIdentifier = offeringIdentifier
         self.highlightedProductID = highlightedProductID
