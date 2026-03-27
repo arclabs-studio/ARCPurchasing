@@ -165,11 +165,6 @@ public struct ARCPaywallView: View {
 
             // Pinned bottom: products + CTA + footer always visible
             VStack(spacing: 0) {
-                // Separator — signals transition from scrollable content to action area
-                Rectangle()
-                    .fill(theme.cardBorderColor)
-                    .frame(height: 1)
-                    .padding(.bottom, 4)
                 // Products pinned above CTA — keeps selection spatially adjacent to action
                 VStack(spacing: 10) {
                     if !subscriptionProducts.isEmpty {
@@ -204,7 +199,10 @@ public struct ARCPaywallView: View {
                                   onRestore: { Task { await restore() } },
                                   isRestoring: purchaseManager.isRestoring)
             }
+            .padding(.top, 8)
             .background(theme.backgroundColor)
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
+            .shadow(color: .black.opacity(0.18), radius: 16, x: 0, y: -4)
         }
     }
 
