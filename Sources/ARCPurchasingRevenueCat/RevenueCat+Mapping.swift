@@ -107,13 +107,18 @@ extension StoreProductDiscount.PaymentMode {
 
 extension EntitlementInfo {
     /// Converts RevenueCat entitlement info to ``Entitlement``.
-    func toEntitlement() -> Entitlement {
-        Entitlement(id: identifier,
-                    isActive: isActive,
-                    productIdentifier: productIdentifier,
-                    expiresDate: expirationDate,
-                    willRenew: willRenew,
-                    periodType: periodType.toEntitlementPeriodType())
+    ///
+    /// - Parameter mapper: Optional closure that overrides the
+    ///   entitlement identifier based on the product identifier. When
+    ///   `nil`, the RevenueCat entitlement identifier is used as-is.
+    func toEntitlement(mapper: (@Sendable (String) -> String)? = nil) -> Entitlement {
+        let entitlementID = mapper?(productIdentifier) ?? identifier
+        return Entitlement(id: entitlementID,
+                           isActive: isActive,
+                           productIdentifier: productIdentifier,
+                           expiresDate: expirationDate,
+                           willRenew: willRenew,
+                           periodType: periodType.toEntitlementPeriodType())
     }
 }
 

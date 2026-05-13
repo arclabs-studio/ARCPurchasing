@@ -115,13 +115,10 @@ extension SubscriptionStatus {
 
 extension PurchaseConfiguration {
     /// Creates a mock configuration for testing.
-    static func mock(apiKey: String = "test_api_key",
-                     userID: String? = nil,
+    static func mock(userID: String? = nil,
                      entitlementIdentifiers: Set<String> = ["premium"]) -> PurchaseConfiguration {
-        PurchaseConfiguration(apiKey: apiKey,
-                              userID: userID,
+        PurchaseConfiguration(userID: userID,
                               debugLoggingEnabled: true,
-                              storeKitVersion: .storeKit2,
                               entitlementIdentifiers: entitlementIdentifiers)
     }
 }

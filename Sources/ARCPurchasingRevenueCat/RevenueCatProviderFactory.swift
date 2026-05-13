@@ -12,46 +12,37 @@ import Foundation
 /// Factory for creating ``RevenueCatProvider`` instances behind the
 /// ``PurchaseProviding`` protocol.
 ///
-/// Use this from your app's configuration entry point:
+/// Backend-specific knobs (API key, internal StoreKit version) are
+/// passed here so the shared ``PurchaseConfiguration`` can stay
+/// agnostic.
+///
+/// ## Example
 ///
 /// ```swift
 /// import ARCPurchasing
 /// import ARCPurchasingRevenueCat
 ///
+/// let config = PurchaseConfiguration(entitlementIdentifiers: ["premium"])
 /// try await ARCPurchaseManager.shared.configure(
-///     with: PurchaseConfiguration(apiKey: "rc_xxx"),
-///     provider: RevenueCatProviderFactory.make()
+///     with: config,
+///     provider: RevenueCatProviderFactory.make(apiKey: "rc_xxx")
 /// )
 /// ```
 public enum RevenueCatProviderFactory {
     /// Build a RevenueCat-backed ``PurchaseProviding``.
     ///
-    /// - Parameter logger: Logger instance to use for purchase events.
-    /// - Returns: A configured RevenueCat provider, type-erased to ``PurchaseProviding``.
-    public static func make(logger: ARCLogger = .shared) -> any PurchaseProviding {
-        RevenueCatProvider(logger: logger)
-    }
-}
-
-// MARK: - Backward-compat convenience
-
-public extension ARCPurchaseManager {
-    /// Configure the purchase manager using the RevenueCat provider.
-    ///
-    /// This convenience wraps ``ARCPurchaseManager/configure(with:provider:analytics:)``
-    /// with ``RevenueCatProviderFactory/make(logger:)``, preserving the
-    /// API shape from earlier ARCPurchasing versions.
-    ///
-    /// Available only when `ARCPurchasingRevenueCat` is imported.
-    ///
     /// - Parameters:
-    ///   - config: Purchase configuration with API key and settings.
-    ///   - analytics: Optional custom analytics handler.
-    /// - Throws: ``PurchaseError`` if configuration fails.
-    func configure(with config: PurchaseConfiguration,
-                   analytics: (any PurchaseAnalytics)? = nil) async throws {
-        try await configure(with: config,
-                            provider: RevenueCatProviderFactory.make(),
-                            analytics: analytics)
+    ///   - apiKey: RevenueCat API key.
+    ///   - storeKitVersion: Which StoreKit version RevenueCat should
+    ///     use internally. Default: ``StoreKitVersion/storeKit2``.
+    ///   - logger: Logger instance for purchase events.
+    /// - Returns: A configured RevenueCat provider, type-erased to
+    ///   ``PurchaseProviding``.
+    public static func make(apiKey: String,
+                            storeKitVersion: StoreKitVersion = .storeKit2,
+                            logger: ARCLogger = .shared) -> any PurchaseProviding {
+        RevenueCatProvider(apiKey: apiKey,
+                           storeKitVersion: storeKitVersion,
+                           logger: logger)
     }
 }

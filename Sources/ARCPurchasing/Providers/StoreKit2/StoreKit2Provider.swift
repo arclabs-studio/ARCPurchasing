@@ -38,6 +38,9 @@ import StoreKit
 public actor StoreKit2Provider: PurchaseProviding {
     // MARK: - Private Properties
 
+    private let productIDs: Set<String>
+    private let offerings: [String: Set<String>]?
+    private let appAccountTokenProvider: (@Sendable () -> UUID?)?
     private let logger: ARCLogger
     private var configuration: PurchaseConfiguration?
     private var appAccountToken: UUID?
@@ -54,8 +57,22 @@ public actor StoreKit2Provider: PurchaseProviding {
 
     /// Creates a StoreKit 2 provider.
     ///
-    /// - Parameter logger: Logger instance for purchase events.
-    public init(logger: ARCLogger = .shared) {
+    /// - Parameters:
+    ///   - productIDs: Product identifiers to load from the App Store.
+    ///   - offerings: Optional offerings map. Keys are offering
+    ///     identifiers; values are the product IDs in each offering.
+    ///     When `nil`, all `productIDs` are exposed under a single
+    ///     `"default"` offering.
+    ///   - appAccountTokenProvider: Optional closure returning an
+    ///     `appAccountToken` attached to every purchase.
+    ///   - logger: Logger instance for purchase events.
+    public init(productIDs: Set<String>,
+                offerings: [String: Set<String>]? = nil,
+                appAccountTokenProvider: (@Sendable () -> UUID?)? = nil,
+                logger: ARCLogger = .shared) {
+        self.productIDs = productIDs
+        self.offerings = offerings
+        self.appAccountTokenProvider = appAccountTokenProvider
         self.logger = logger
     }
 
@@ -68,14 +85,12 @@ public actor StoreKit2Provider: PurchaseProviding {
     public func configure(with config: PurchaseConfiguration) async throws {
         logger.debug("[Purchase] Configuring StoreKit 2 provider")
 
-        try config.validate()
-
-        guard config.storeKit2 != nil else {
-            throw PurchaseError.notConfigured
+        guard !productIDs.isEmpty else {
+            throw PurchaseError.invalidConfiguration("StoreKit 2 productIDs must not be empty.")
         }
 
         configuration = config
-        appAccountToken = config.storeKit2?.appAccountTokenProvider?()
+        appAccountToken = appAccountTokenProvider?()
 
         startTransactionListener()
 
@@ -132,22 +147,18 @@ public actor StoreKit2Provider: PurchaseProviding {
     public func fetchOfferings() async throws -> [String: [PurchaseProduct]] {
         try ensureConfigured()
 
-        guard let sk2 = configuration?.storeKit2 else {
-            throw PurchaseError.notConfigured
-        }
-
         logger.debug("[Purchase] Fetching offerings")
 
-        if let offeringsMap = sk2.offerings, !offeringsMap.isEmpty {
+        if let offeringsMap = offerings, !offeringsMap.isEmpty {
             var result: [String: [PurchaseProduct]] = [:]
-            for (key, productIDs) in offeringsMap {
-                result[key] = try await fetchProducts(for: productIDs)
+            for (key, ids) in offeringsMap {
+                result[key] = try await fetchProducts(for: ids)
             }
             return result
         }
 
         // No offerings map provided — expose all configured products under "default".
-        let products = try await fetchProducts(for: sk2.productIDs)
+        let products = try await fetchProducts(for: productIDs)
         return ["default": products]
     }
 
@@ -269,7 +280,7 @@ public actor StoreKit2Provider: PurchaseProviding {
     public func currentEntitlements() async -> [Entitlement] {
         guard isConfigured else { return [] }
 
-        let mapper = configuration?.storeKit2?.entitlementMapper
+        let mapper = configuration?.entitlementMapper
         var results: [Entitlement] = []
 
         for await result in Transaction.currentEntitlements {

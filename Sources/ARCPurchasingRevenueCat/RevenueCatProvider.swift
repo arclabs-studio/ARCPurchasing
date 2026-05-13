@@ -10,24 +10,32 @@ import ARCPurchasing
 import Foundation
 import RevenueCat
 
-/// RevenueCat implementation of ``PurchaseProviding``.
+/// StoreKit version preference for the RevenueCat SDK.
 ///
-/// This provider integrates with the RevenueCat SDK to handle all purchase
-/// operations, including product fetching, purchasing, and entitlement management.
+/// Selects which underlying StoreKit version RevenueCat uses internally.
+/// Lives in the RevenueCat module because it is meaningless to other
+/// providers.
+public enum StoreKitVersion: Sendable {
+    /// Use StoreKit 1
+    case storeKit1
+    /// Use StoreKit 2 (recommended for iOS 15+)
+    case storeKit2
+}
+
+/// RevenueCat-backed implementation of ``PurchaseProviding``.
 ///
-/// ## Usage
+/// All RevenueCat-specific configuration (API key, internal StoreKit
+/// version) is supplied at construction time so the shared
+/// ``PurchaseConfiguration`` can remain backend-agnostic.
 ///
-/// ```swift
-/// let provider = RevenueCatProvider()
-/// let config = PurchaseConfiguration(apiKey: "your_api_key")
-/// try await provider.configure(with: config)
-/// ```
-///
-/// - Note: This class is designed to be used through ``ARCPurchaseManager``
-///   rather than directly.
+/// - Note: Consumers should construct this through
+///   ``RevenueCatProviderFactory/make(apiKey:storeKitVersion:logger:)``
+///   and use it via ``ARCPurchaseManager`` rather than directly.
 public actor RevenueCatProvider: PurchaseProviding {
     // MARK: - Private Properties
 
+    private let apiKey: String
+    private let storeKitVersion: StoreKitVersion
     private let logger: ARCLogger
     private var configuration: PurchaseConfiguration?
 
@@ -41,8 +49,16 @@ public actor RevenueCatProvider: PurchaseProviding {
 
     /// Creates a RevenueCat provider.
     ///
-    /// - Parameter logger: Logger instance for purchase events.
-    public init(logger: ARCLogger = .shared) {
+    /// - Parameters:
+    ///   - apiKey: RevenueCat API key (required).
+    ///   - storeKitVersion: Which StoreKit version RevenueCat should use
+    ///     internally. Default: ``StoreKitVersion/storeKit2``.
+    ///   - logger: Logger instance for purchase events.
+    public init(apiKey: String,
+                storeKitVersion: StoreKitVersion = .storeKit2,
+                logger: ARCLogger = .shared) {
+        self.apiKey = apiKey
+        self.storeKitVersion = storeKitVersion
         self.logger = logger
     }
 
@@ -51,16 +67,18 @@ public actor RevenueCatProvider: PurchaseProviding {
     public func configure(with config: PurchaseConfiguration) async throws {
         logger.debug("[Purchase] Configuring RevenueCat provider")
 
-        try config.validate()
+        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw PurchaseError.invalidConfiguration("RevenueCat API key must not be empty.")
+        }
 
         // Configure RevenueCat SDK (must be called on main thread)
-        await MainActor.run {
+        await MainActor.run { [apiKey, storeKitVersion] in
             Purchases.logLevel = config.debugLoggingEnabled ? .debug : .error
 
             let rcStoreKitVersion: RevenueCat.StoreKitVersion =
-                config.storeKitVersion == .storeKit1 ? .storeKit1 : .storeKit2
+                storeKitVersion == .storeKit1 ? .storeKit1 : .storeKit2
 
-            Purchases.configure(with: Configuration.Builder(withAPIKey: config.apiKey)
+            Purchases.configure(with: Configuration.Builder(withAPIKey: apiKey)
                 .with(storeKitVersion: rcStoreKitVersion)
                 .build())
         }
@@ -197,7 +215,8 @@ public actor RevenueCatProvider: PurchaseProviding {
 
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
-            return customerInfo.entitlements.active.values.map { $0.toEntitlement() }
+            let mapper = configuration?.entitlementMapper
+            return customerInfo.entitlements.active.values.map { $0.toEntitlement(mapper: mapper) }
         } catch {
             logger.error("[Purchase] Failed to get entitlements: \(error.localizedDescription)")
             return []

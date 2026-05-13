@@ -29,14 +29,15 @@ struct ARCPurchaseManagerTests {
         // Arrange
         let provider = MockPurchaseProvider()
         let manager = ARCPurchaseManager()
-        let config = PurchaseConfiguration.mock()
+        let config = PurchaseConfiguration.mock(userID: "user_42")
 
         // Act
         try await manager.configure(with: config, provider: provider)
 
         // Assert
         #expect(provider.configureCalled == true)
-        #expect(provider.configureConfig?.apiKey == config.apiKey)
+        #expect(provider.configureConfig?.userID == config.userID)
+        #expect(provider.configureConfig?.entitlementIdentifiers == config.entitlementIdentifiers)
     }
 
     @Test("Configure refreshes entitlements and subscription state") func configure_refreshesState() async throws {
