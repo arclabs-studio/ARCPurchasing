@@ -9,9 +9,10 @@ import Foundation
 
 /// Main protocol that defines the complete purchase provider interface.
 ///
-/// This protocol composes all sub-protocols for a unified API, representing
-/// a complete purchase provider implementation. Implementations include
-/// ``RevenueCatProvider`` and future native StoreKit 2 providers.
+/// This protocol composes the sub-protocols for a unified API. Concrete
+/// implementations live in their own modules and expose a factory that
+/// returns `any PurchaseProviding`, so the abstraction layer never needs
+/// to know which backend is in use.
 ///
 /// ## Conformance Requirements
 ///
@@ -23,7 +24,8 @@ import Foundation
 /// ## Example
 ///
 /// ```swift
-/// let provider: any PurchaseProviding = RevenueCatProvider()
+/// // Backend-agnostic — construct via the factory of your chosen provider.
+/// let provider: any PurchaseProviding = SomeProviderFactory.make(...)
 /// try await provider.configure(with: config)
 /// let products = try await provider.fetchProducts(for: ["premium_monthly"])
 /// ```
@@ -33,7 +35,8 @@ public protocol PurchaseProviding: ProductProviding, TransactionProviding, Entit
     /// This must be called before any other operations.
     ///
     /// - Parameter config: The ``PurchaseConfiguration`` to use.
-    /// - Throws: ``PurchaseError/invalidAPIKey`` if the API key is invalid,
+    /// - Throws: ``PurchaseError/invalidConfiguration(_:)`` when the
+    ///           backend-specific configuration is missing or malformed,
     ///           or other errors during configuration.
     func configure(with config: PurchaseConfiguration) async throws
 

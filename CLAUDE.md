@@ -61,6 +61,7 @@ RevenueCatProvider (Providers/RevenueCat/)
 - Use `MockPurchaseProvider` (in test target) to test without RevenueCat
 - All test files use Swift Testing framework (`import Testing`, `@Test`, `#expect`)
 - No XCTest — Swift Testing only
+- StoreKit 2 smoke tests that call `provider.configure(...)` are gated with `.requiresStoreKitHost` — they need a hosting bundle that `swift test` does not provide and would otherwise hang. CI runs without the gate. Set `ARCP_RUN_SK2_INTEGRATION=1 swift test` locally (or run them from the `Example/` host app) to exercise them.
 
 ---
 

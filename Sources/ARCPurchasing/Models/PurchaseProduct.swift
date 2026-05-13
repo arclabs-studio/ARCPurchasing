@@ -50,12 +50,15 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
     /// Introductory offer (if available).
     public let introductoryOffer: IntroductoryOffer?
 
-    // MARK: - Internal Properties
+    // MARK: - Provider Bridge
 
     /// Original provider product (type-erased).
     ///
-    /// Used internally to perform actual purchase operations.
-    let underlyingProduct: AnySendable
+    /// Providers use this to round-trip their own native product type
+    /// through the provider-agnostic ``PurchaseProduct`` representation.
+    /// Consumers should not depend on its contents — the concrete type
+    /// is an implementation detail of the active provider.
+    public let underlyingProduct: AnySendable
 
     // MARK: - Initialization
 
@@ -99,18 +102,20 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
 
     /// Creates a purchase product backed by a provider-specific store product.
     ///
-    /// - Note: `underlyingProduct` must wrap a `StoreProduct` instance for
-    ///   RevenueCat-backed purchases to succeed.
-    init(id: String,
-         displayName: String,
-         description: String,
-         price: Decimal,
-         displayPrice: String,
-         currencyCode: String,
-         type: ProductType,
-         subscriptionPeriod: SubscriptionPeriod? = nil,
-         introductoryOffer: IntroductoryOffer? = nil,
-         underlyingProduct: AnySendable) {
+    /// Intended for provider implementations. The `underlyingProduct`
+    /// must wrap the provider's native product type for purchases to
+    /// succeed; what that concrete type is depends entirely on the
+    /// active provider.
+    public init(id: String,
+                displayName: String,
+                description: String,
+                price: Decimal,
+                displayPrice: String,
+                currencyCode: String,
+                type: ProductType,
+                subscriptionPeriod: SubscriptionPeriod? = nil,
+                introductoryOffer: IntroductoryOffer? = nil,
+                underlyingProduct: AnySendable) {
         self.id = id
         self.displayName = displayName
         self.description = description

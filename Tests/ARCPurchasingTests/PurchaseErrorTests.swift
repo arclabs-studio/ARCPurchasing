@@ -16,9 +16,10 @@ struct PurchaseErrorTests {
         #expect(error.errorDescription?.contains("not configured") == true)
     }
 
-    @Test("invalidAPIKey has correct description") func invalidAPIKey_hasCorrectDescription() {
-        let error = PurchaseError.invalidAPIKey
-        #expect(error.errorDescription?.contains("Invalid API key") == true)
+    @Test("invalidConfiguration has correct description") func invalidConfiguration_hasCorrectDescription() {
+        let error = PurchaseError.invalidConfiguration("API key empty")
+        #expect(error.errorDescription?.contains("Invalid configuration") == true)
+        #expect(error.errorDescription?.contains("API key empty") == true)
     }
 
     @Test("productNotFound includes product ID") func productNotFound_includesProductID() {
@@ -40,7 +41,7 @@ struct PurchaseErrorTests {
 
     @Test("Configuration errors are not retryable") func configurationErrors_areNotRetryable() {
         #expect(PurchaseError.notConfigured.isRetryable == false)
-        #expect(PurchaseError.invalidAPIKey.isRetryable == false)
+        #expect(PurchaseError.invalidConfiguration("reason").isRetryable == false)
     }
 
     @Test("User cancellation is not retryable") func userCancellation_isNotRetryable() {

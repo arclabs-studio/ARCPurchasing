@@ -9,8 +9,8 @@ import Foundation
 
 /// Protocol for fetching product information from a purchase provider.
 ///
-/// This protocol abstracts the product fetching capabilities, allowing different
-/// implementations (RevenueCat, StoreKit 2 native, etc.) to be used interchangeably.
+/// Abstracts product loading so the rest of the package never sees a
+/// provider's native product type.
 public protocol ProductProviding: Sendable {
     /// Fetch available products by their identifiers.
     ///
@@ -19,11 +19,13 @@ public protocol ProductProviding: Sendable {
     /// - Throws: ``PurchaseError`` if fetching fails.
     func fetchProducts(for identifiers: Set<String>) async throws -> [PurchaseProduct]
 
-    /// Fetch current offerings (provider-organized product groups).
+    /// Fetch current offerings — named groups of products.
     ///
-    /// Offerings are a provider-specific concept (common in RevenueCat) that groups
-    /// products by use case. For providers without this concept, return products
-    /// grouped by a default key.
+    /// Offerings are a provider-defined concept. Backends that organise
+    /// products server-side surface those groupings here; backends that
+    /// expose a flat product list typically return a single `"default"`
+    /// key. Consumers should not rely on a specific number of keys
+    /// being present.
     ///
     /// - Returns: Dictionary mapping offering identifiers to their products.
     /// - Throws: ``PurchaseError`` if fetching fails.

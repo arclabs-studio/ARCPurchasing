@@ -7,78 +7,65 @@
 
 import Foundation
 
-/// StoreKit version preference for RevenueCat.
-public enum StoreKitVersion: Sendable {
-    /// Use StoreKit 1
-    case storeKit1
-    /// Use StoreKit 2 (recommended for iOS 15+)
-    case storeKit2
-}
-
-/// Configuration for the purchase provider.
+/// Provider-agnostic configuration shared by every ``PurchaseProviding``.
 ///
-/// `PurchaseConfiguration` contains all settings needed to initialize
-/// a purchase provider, including API credentials and behavior options.
+/// This type intentionally contains only knobs that apply to every
+/// backend — user identity, entitlement bookkeeping, logging, and the
+/// optional entitlement mapper. Backend-specific settings (API keys,
+/// product identifiers, App Store offerings, etc.) live on the
+/// provider factory of that backend so the abstraction layer stays
+/// clean.
 ///
 /// ## Example
 ///
 /// ```swift
 /// let config = PurchaseConfiguration(
-///     apiKey: "your_revenuecat_api_key",
-///     entitlementIdentifiers: ["premium", "pro"]
+///     userID: currentUserID,
+///     entitlementIdentifiers: ["premium"],
+///     entitlementMapper: { _ in "premium" }
 /// )
-/// try await ARCPurchaseManager.shared.configure(with: config)
+/// try await ARCPurchaseManager.shared.configure(
+///     with: config,
+///     provider: someProviderFactory.make(...)
+/// )
 /// ```
 public struct PurchaseConfiguration: Sendable {
     // MARK: - Public Properties
 
-    /// API key for the provider (e.g., RevenueCat API key).
-    public let apiKey: String
-
-    /// Optional user ID to identify on configuration.
+    /// Optional user identifier propagated to the provider.
     public let userID: String?
 
-    /// Whether to enable debug logging.
+    /// Whether to enable verbose debug logging.
     public let debugLoggingEnabled: Bool
 
-    /// StoreKit version preference (RevenueCat specific).
-    public let storeKitVersion: StoreKitVersion
-
-    /// Entitlement identifiers to track.
+    /// Entitlement identifiers the consuming app cares about.
     public let entitlementIdentifiers: Set<String>
+
+    /// Maps a product identifier to a logical entitlement identifier.
+    ///
+    /// Default behaviour (when `nil`) keys ``Entitlement/id`` by the
+    /// underlying product ID. Supply a closure to group multiple
+    /// product IDs (e.g., monthly + yearly subscriptions) under a
+    /// single logical entitlement like `"premium"`.
+    public let entitlementMapper: (@Sendable (_ productID: String) -> String)?
 
     // MARK: - Initialization
 
     /// Creates a purchase configuration.
     ///
     /// - Parameters:
-    ///   - apiKey: API key for the provider.
-    ///   - userID: Optional user ID for identification.
-    ///   - debugLoggingEnabled: Enable debug logging (default: `false`).
-    ///   - storeKitVersion: StoreKit version to use (default: `.storeKit2`).
-    ///   - entitlementIdentifiers: Set of entitlement IDs to track.
-    public init(apiKey: String,
-                userID: String? = nil,
+    ///   - userID: Optional user identifier propagated to the provider.
+    ///   - debugLoggingEnabled: Enable verbose debug logging.
+    ///   - entitlementIdentifiers: Entitlement identifiers to track.
+    ///   - entitlementMapper: Optional closure that maps a product ID
+    ///     to a logical entitlement identifier.
+    public init(userID: String? = nil,
                 debugLoggingEnabled: Bool = false,
-                storeKitVersion: StoreKitVersion = .storeKit2,
-                entitlementIdentifiers: Set<String> = []) {
-        self.apiKey = apiKey
+                entitlementIdentifiers: Set<String> = [],
+                entitlementMapper: (@Sendable (String) -> String)? = nil) {
         self.userID = userID
         self.debugLoggingEnabled = debugLoggingEnabled
-        self.storeKitVersion = storeKitVersion
         self.entitlementIdentifiers = entitlementIdentifiers
-    }
-}
-
-// MARK: - Validation
-
-public extension PurchaseConfiguration {
-    /// Validates the configuration.
-    ///
-    /// - Throws: ``PurchaseError/invalidAPIKey`` if API key is empty.
-    func validate() throws {
-        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw PurchaseError.invalidAPIKey
-        }
+        self.entitlementMapper = entitlementMapper
     }
 }

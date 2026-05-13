@@ -7,21 +7,27 @@
 
 **In-App Purchase management for ARC Labs Studio apps**
 
-Protocol-based | RevenueCat powered | Analytics ready | Swift 6 compliant
+Protocol-based | StoreKit 2 or RevenueCat | Analytics ready | Swift 6 compliant
 
 ---
 
 ## Overview
 
-ARCPurchasing provides a unified, protocol-based interface for managing in-app purchases across all ARC Labs Studio applications. Built on RevenueCat with a clean abstraction layer, it enables easy provider switching while maintaining consistent APIs.
+ARCPurchasing provides a unified, protocol-based interface for managing in-app purchases across all ARC Labs Studio applications. It ships two interchangeable providers behind the same API:
+
+- **StoreKit 2** (default, recommended) — native, zero third-party dependencies
+- **RevenueCat** — full RevenueCat SDK integration via the `ARCPurchasingRevenueCat` companion product
+
+You can migrate from RevenueCat to StoreKit 2 (or vice versa) by changing a single line at configure time. The paywall UI and consumer code remain unchanged.
 
 ### Key Features
 
-- **Protocol-based abstraction** - Clean separation between interface and implementation
-- **RevenueCat integration** - Production-ready with full feature support
-- **Analytics events** - Track purchase funnel with custom or built-in analytics
-- **Swift 6 compliant** - Strict concurrency with Sendable types
-- **Full test coverage** - Comprehensive mocks for testing
+- **Protocol-based abstraction** — Clean separation between interface and implementation
+- **Two providers** — Native StoreKit 2 or RevenueCat, selectable at configure time
+- **Backend-ready** — `appAccountToken` plumbing + signed JWS payload for server-side verification
+- **Analytics events** — Track purchase funnel with custom or built-in analytics
+- **Swift 6 compliant** — Strict concurrency with Sendable types
+- **Full test coverage** — Comprehensive mocks for testing
 
 ---
 
@@ -30,7 +36,7 @@ ARCPurchasing provides a unified, protocol-based interface for managing in-app p
 - **Swift:** 6.0+
 - **Platforms:** iOS 17.0+ / macOS 14.0+ / watchOS 10.0+ / tvOS 17.0+ / visionOS 1.0+
 - **Xcode:** 16.0+
-- **Dependencies:** RevenueCat SDK 5.0+, ARCLogger
+- **Dependencies:** ARCLogger (core); RevenueCat SDK 5.0+ (only if using `ARCPurchasingRevenueCat`)
 
 ---
 
@@ -45,25 +51,62 @@ dependencies: [
 ]
 ```
 
+Then link the products you need:
+
+| Product | When to link |
+|---------|-------------|
+| `ARCPurchasing` | **Always** — core API + StoreKit 2 provider |
+| `ARCPurchasingUI` | If you use the bundled `ARCPaywallView` |
+| `ARCPurchasingRevenueCat` | Only if you use the RevenueCat provider |
+| `ARCPurchasingRevenueCatUI` | Only if you use RevenueCat's Customer Center view |
+
+Apps on the StoreKit 2 path do not pull `purchases-ios` at all.
+
 Or in Xcode: File > Add Package Dependencies and enter the repository URL.
 
 ---
 
 ## Usage
 
-### Quick Start
+### Choosing a Provider
+
+The package is **fully provider-agnostic**. The shared `PurchaseConfiguration` carries only cross-backend concerns (userID, entitlement identifiers, debug logging, entitlement mapper). Backend-specific knobs live on each provider's factory.
+
+#### StoreKit 2
 
 ```swift
 import ARCPurchasing
 
-// Configure on app launch
 let config = PurchaseConfiguration(
-    apiKey: "your_revenuecat_api_key",
-    entitlementIdentifiers: ["premium"]
+    entitlementIdentifiers: ["premium"],
+    entitlementMapper: { _ in "premium" }   // optional: group products into one entitlement
 )
 
-try await ARCPurchaseManager.shared.configure(with: config)
+let provider = StoreKit2ProviderFactory.make(
+    productIDs: ["com.app.premium_monthly", "com.app.premium_yearly"]
+)
 
+try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
+```
+
+#### RevenueCat
+
+```swift
+import ARCPurchasing
+import ARCPurchasingRevenueCat
+
+let config = PurchaseConfiguration(entitlementIdentifiers: ["premium"])
+
+let provider = RevenueCatProviderFactory.make(apiKey: "your_revenuecat_api_key")
+
+try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
+```
+
+Swapping providers is a one-line change at the factory call site — every other touchpoint in the app stays the same.
+
+### Common operations (provider-agnostic)
+
+```swift
 // Check entitlement
 let hasPremium = await ARCPurchaseManager.shared.hasEntitlement("premium")
 
@@ -75,6 +118,10 @@ if let product = products.first {
     switch result {
     case .success(let transaction):
         print("Purchased: \(transaction.productID)")
+        // Forward signed payload to your backend when the provider surfaces one.
+        if let jws = transaction.jwsRepresentation {
+            await myBackend.verifyTransaction(jws: jws)
+        }
     case .cancelled:
         print("User cancelled")
     case .pending:
@@ -84,6 +131,21 @@ if let product = products.first {
     }
 }
 ```
+
+### Backend verification
+
+Providers that expose a signed App Store payload populate `PurchaseTransaction.jwsRepresentation` on every successful purchase. Forward it verbatim to your backend (e.g., a Vapor app) to call Apple's `VerifyTransaction` endpoint server-side — no further setup needed.
+
+To correlate purchases with backend user accounts on the StoreKit 2 path, pass an `appAccountTokenProvider` to the factory:
+
+```swift
+let provider = StoreKit2ProviderFactory.make(
+    productIDs: ["com.app.premium_monthly"],
+    appAccountTokenProvider: { currentUser?.appAccountToken }
+)
+```
+
+The returned UUID is attached to every purchase and surfaces in App Store Server Notifications.
 
 ### SwiftUI Paywall
 
@@ -226,12 +288,16 @@ try await ARCPurchaseManager.shared.configure(
 ## Architecture
 
 ```
-ARCPurchasing/
-├── Core/           # Manager and configuration
-├── Protocols/      # Abstraction layer
-├── Models/         # Domain models
-├── Providers/      # Implementation (RevenueCat)
-└── Analytics/      # Event tracking
+ARCPurchasing/                  (core — zero RevenueCat dependency)
+├── Core/                       # Manager and configuration
+├── Protocols/                  # Abstraction layer
+├── Models/                     # Domain models
+├── Providers/StoreKit2/        # Native StoreKit 2 provider
+└── Analytics/                  # Event tracking
+
+ARCPurchasingUI/                (custom SwiftUI paywall — provider-agnostic)
+ARCPurchasingRevenueCat/        (RevenueCat provider — opt-in)
+ARCPurchasingRevenueCatUI/      (RevenueCat Customer Center view — opt-in)
 ```
 
 ### Protocol Design

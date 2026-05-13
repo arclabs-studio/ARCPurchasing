@@ -68,10 +68,10 @@ public struct ARCPaywallView: View {
     /// - Parameters:
     ///   - configuration: Content configuration (copy, features, product IDs, URLs).
     ///   - theme: Visual theme. Defaults to `PaywallTheme.default` (dark burgundy).
-    ///   - previewProducts: Optional mock products used instead of fetching from RevenueCat.
+    ///   - previewProducts: Optional mock products used instead of fetching from the active provider.
     ///     Pass products created with the public `PurchaseProduct` initializer to render the
     ///     paywall without a network connection — useful for Xcode Previews and demo apps.
-    ///     Products provided here cannot be purchased (they have no underlying StoreProduct).
+    ///     Products provided here cannot be purchased (they carry no underlying store product).
     ///   - onDismiss: Called when the user dismisses without purchasing.
     ///   - onPurchaseCompleted: Called after a successful purchase or restore.
     public init(configuration: PaywallConfiguration,
