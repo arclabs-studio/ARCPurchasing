@@ -12,7 +12,7 @@ import SwiftUI
 /// Demo screen showing `ARCPaywallView` with mock products.
 ///
 /// In production, omit `previewProducts` — the paywall fetches live products
-/// from RevenueCat automatically.
+/// from the configured provider automatically (StoreKit 2 in this demo).
 struct DemoPaywallScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var theme: DemoTheme = .dark
