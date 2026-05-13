@@ -16,7 +16,9 @@ import Testing
 
 @MainActor
 struct StoreKit2ManagerIntegrationTests {
-    @Test("Configuring manager with StoreKit2 provider succeeds") func configureSucceeds() async throws {
+    @Test("Configuring manager with StoreKit2 provider succeeds",
+          .requiresStoreKitHost,
+          .timeLimit(.minutes(1))) func configureSucceeds() async throws {
         let manager = ARCPurchaseManager()
         let provider = StoreKit2ProviderFactory.make(productIDs: ["com.test.monthly", "com.test.yearly"])
         let config = PurchaseConfiguration(entitlementIdentifiers: ["premium"])
@@ -37,7 +39,9 @@ struct StoreKit2ManagerIntegrationTests {
         }
     }
 
-    @Test("Manager honours entitlementMapper closure") func entitlementMapperWired() async throws {
+    @Test("Manager honours entitlementMapper closure",
+          .requiresStoreKitHost,
+          .timeLimit(.minutes(1))) func entitlementMapperWired() async throws {
         let manager = ARCPurchaseManager()
         let provider = StoreKit2ProviderFactory.make(productIDs: ["com.test.monthly", "com.test.yearly"])
         let config = PurchaseConfiguration(entitlementIdentifiers: ["premium"],
@@ -51,7 +55,9 @@ struct StoreKit2ManagerIntegrationTests {
         #expect(manager.currentEntitlements.isEmpty)
     }
 
-    @Test("Manager exposes hard-coded SK2 management URL when no active sub") func sk2ManagementURL() async throws {
+    @Test("Manager exposes hard-coded SK2 management URL when no active sub",
+          .requiresStoreKitHost,
+          .timeLimit(.minutes(1))) func sk2ManagementURL() async throws {
         let manager = ARCPurchaseManager()
         let provider = StoreKit2ProviderFactory.make(productIDs: ["com.test.monthly"])
 

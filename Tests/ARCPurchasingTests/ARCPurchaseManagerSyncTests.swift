@@ -38,32 +38,34 @@ struct ARCPurchaseManagerSyncTests {
 
     // MARK: - Real-time State Updates Tests
 
-    @Test("State updates when purchaseStateDidChange stream emits") func purchaseStateDidChange_updatesManagerState() async throws {
+    @Test("State updates when purchaseStateDidChange stream emits",
+          .timeLimit(.minutes(1))) func purchaseStateDidChange_updatesManagerState() async throws {
         // Arrange
         let provider = MockPurchaseProvider()
         let manager = ARCPurchaseManager()
         try await manager.configure(with: .mock(), provider: provider)
 
-        // Set provider state to reflect what a renewal would deliver
+        // Set provider state to reflect what a renewal would deliver.
         provider.currentEntitlementsResult = [.mock(id: "premium"), .mock(id: "pro")]
         provider.subscriptionStatusResult = .mock(isSubscribed: true)
 
-        // Schedule emission in a separate Task. On @MainActor, tasks run in enqueue order,
-        // so the observation Task (created by configure) registers its stream continuation
-        // before this emission fires.
-        Task { @MainActor [provider] in
-            provider.simulatePurchaseStateChange()
+        // The manager's observation Task lazily registers the AsyncStream continuation
+        // when it begins iterating. Yield until the mock confirms registration so the
+        // emission below cannot be dropped because of scheduling order.
+        for _ in 0 ..< 500 where provider.purchaseStateDidChangeContinuation == nil {
+            await Task.yield()
         }
+        try #require(provider.purchaseStateDidChangeContinuation != nil)
 
-        // Wait for subscriptionStatus() to be called inside refreshState().
-        // NOTE: onSubscriptionStatusCalled fires from WITHIN subscriptionStatus() before
-        // it returns, so our continuation is enqueued on @MainActor before refreshState()
-        // can assign `self.subscriptionStatus = result`. One Task.yield() lets that
-        // assignment run to completion before we assert.
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            provider.onSubscriptionStatusCalled = { continuation.resume() }
+        // Trigger the state change the manager should react to.
+        provider.simulatePurchaseStateChange()
+
+        // refreshState() reads currentEntitlements then subscriptionStatus and
+        // finally assigns both properties on @MainActor. Poll until the assignment
+        // completes; the .timeLimit trait bounds the wait if it never does.
+        for _ in 0 ..< 500 where manager.subscriptionStatus?.isSubscribed != true {
+            await Task.yield()
         }
-        await Task.yield()
 
         // Assert
         #expect(manager.currentEntitlements.count == 2)

@@ -18,7 +18,9 @@ struct StoreKit2ProviderConfigurationTests {
         #expect(configured == false)
     }
 
-    @Test("configure() sets isConfigured") func configured() async throws {
+    @Test("configure() sets isConfigured",
+          .requiresStoreKitHost,
+          .timeLimit(.minutes(1))) func configured() async throws {
         let provider = StoreKit2Provider(productIDs: ["com.test.monthly"])
 
         try await provider.configure(with: PurchaseConfiguration())

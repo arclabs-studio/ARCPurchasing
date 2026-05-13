@@ -12,7 +12,9 @@ import Testing
 // MARK: - Identify / Log Out
 
 struct StoreKit2IdentifyTests {
-    @Test("identify with userID derives a stable appAccountToken") func identifySetsToken() async throws {
+    @Test("identify with userID derives a stable appAccountToken",
+          .requiresStoreKitHost,
+          .timeLimit(.minutes(1))) func identifySetsToken() async throws {
         let provider = StoreKit2Provider(productIDs: ["com.test.monthly"])
         try await provider.configure(with: PurchaseConfiguration())
 
@@ -22,7 +24,9 @@ struct StoreKit2IdentifyTests {
         try await provider.identify(userID: "")
     }
 
-    @Test("logOut clears state and re-arms listener") func logOutClears() async throws {
+    @Test("logOut clears state and re-arms listener",
+          .requiresStoreKitHost,
+          .timeLimit(.minutes(1))) func logOutClears() async throws {
         let provider = StoreKit2Provider(productIDs: ["com.test.monthly"])
         try await provider.configure(with: PurchaseConfiguration())
 
@@ -55,7 +59,7 @@ struct StoreKit2IdentifyTests {
 
 // MARK: - Subscription Status (sandbox-less)
 
-struct StoreKit2SubscriptionStatusTests {
+@Suite(.requiresStoreKitHost, .timeLimit(.minutes(1))) struct StoreKit2SubscriptionStatusTests {
     @Test("subscriptionStatus returns isSubscribed false with no active transactions") func noActiveSub() async throws {
         let provider = StoreKit2Provider(productIDs: ["com.test.monthly"])
         try await provider.configure(with: PurchaseConfiguration())
