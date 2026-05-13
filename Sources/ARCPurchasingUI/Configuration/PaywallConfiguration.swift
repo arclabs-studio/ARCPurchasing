@@ -63,7 +63,8 @@ public struct PaywallConfiguration: Sendable {
 
     // MARK: - Products
 
-    /// RevenueCat offering identifier to fetch. `nil` uses the default current offering.
+    /// Offering identifier to fetch from the active provider.
+    /// `nil` uses the provider's default offering (typically the first one returned).
     public let offeringIdentifier: String?
 
     /// Product ID that is pre-selected and visually highlighted (accent border).

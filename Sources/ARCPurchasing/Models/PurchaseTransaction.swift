@@ -40,13 +40,13 @@ public struct PurchaseTransaction: Sendable, Equatable, Identifiable {
 
     /// Signed JWS representation of the transaction, when available.
     ///
-    /// Populated by providers that surface signed App Store payloads
-    /// (StoreKit 2). Forward this verbatim to a backend that performs
-    /// server-side `VerifyTransaction` against the App Store Server API.
+    /// Populated by providers that surface signed App Store payloads.
+    /// Forward this verbatim to a backend that performs server-side
+    /// `VerifyTransaction` against the App Store Server API.
     ///
-    /// `nil` for providers that do not expose the raw signed payload
-    /// (e.g., RevenueCat — use the RevenueCat dashboard for server-side
-    /// verification instead).
+    /// `nil` for providers that do not expose the raw signed payload;
+    /// those backends typically supply their own server-side
+    /// verification path.
     public let jwsRepresentation: String?
 
     // MARK: - Initialization
@@ -62,7 +62,7 @@ public struct PurchaseTransaction: Sendable, Equatable, Identifiable {
     ///   - isRestored: Whether this is a restored purchase.
     ///   - price: Price at time of purchase.
     ///   - currencyCode: Currency code.
-    ///   - jwsRepresentation: Signed JWS payload from the App Store (StoreKit 2).
+    ///   - jwsRepresentation: Signed JWS payload from the App Store, when the provider exposes it.
     public init(id: String,
                 productID: String,
                 originalTransactionID: String? = nil,

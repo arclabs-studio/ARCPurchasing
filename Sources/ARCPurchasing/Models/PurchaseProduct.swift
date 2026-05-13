@@ -54,10 +54,10 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
 
     /// Original provider product (type-erased).
     ///
-    /// Providers use this to round-trip native types like RevenueCat's
-    /// `StoreProduct` or StoreKit 2's `Product` through the provider-agnostic
-    /// ``PurchaseProduct`` representation. Consumers should not depend on its
-    /// contents.
+    /// Providers use this to round-trip their own native product type
+    /// through the provider-agnostic ``PurchaseProduct`` representation.
+    /// Consumers should not depend on its contents — the concrete type
+    /// is an implementation detail of the active provider.
     public let underlyingProduct: AnySendable
 
     // MARK: - Initialization
@@ -102,13 +102,10 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
 
     /// Creates a purchase product backed by a provider-specific store product.
     ///
-    /// Intended for provider implementations (RevenueCat, StoreKit 2). The
-    /// `underlyingProduct` must wrap the provider's native product type for
-    /// purchases to succeed.
-    ///
-    /// - Note: For RevenueCat-backed purchases, `underlyingProduct` must wrap
-    ///   a `StoreProduct` instance. For StoreKit 2, it must wrap a native
-    ///   `Product` instance.
+    /// Intended for provider implementations. The `underlyingProduct`
+    /// must wrap the provider's native product type for purchases to
+    /// succeed; what that concrete type is depends entirely on the
+    /// active provider.
     public init(id: String,
                 displayName: String,
                 description: String,

@@ -9,11 +9,10 @@ import Foundation
 
 /// Main protocol that defines the complete purchase provider interface.
 ///
-/// This protocol composes all sub-protocols for a unified API, representing
-/// a complete purchase provider implementation. Built-in implementations are
-/// shipped in dedicated modules:
-/// - StoreKit 2 (`ARCPurchasing` core) via `StoreKit2ProviderFactory.make()`
-/// - RevenueCat (`ARCPurchasingRevenueCat`) via `RevenueCatProviderFactory.make()`
+/// This protocol composes the sub-protocols for a unified API. Concrete
+/// implementations live in their own modules and expose a factory that
+/// returns `any PurchaseProviding`, so the abstraction layer never needs
+/// to know which backend is in use.
 ///
 /// ## Conformance Requirements
 ///
@@ -26,7 +25,7 @@ import Foundation
 ///
 /// ```swift
 /// // Backend-agnostic — construct via the factory of your chosen provider.
-/// let provider: any PurchaseProviding = StoreKit2ProviderFactory.make()
+/// let provider: any PurchaseProviding = SomeProviderFactory.make(...)
 /// try await provider.configure(with: config)
 /// let products = try await provider.fetchProducts(for: ["premium_monthly"])
 /// ```

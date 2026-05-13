@@ -70,23 +70,23 @@ Or in Xcode: File > Add Package Dependencies and enter the repository URL.
 
 ### Choosing a Provider
 
-The recommended path is **StoreKit 2** — no API key, no third-party SDK, full Swift 6 + iOS 17+ integration.
+The package is **fully provider-agnostic**. The shared `PurchaseConfiguration` carries only cross-backend concerns (userID, entitlement identifiers, debug logging, entitlement mapper). Backend-specific knobs live on each provider's factory.
 
-#### StoreKit 2 (default, recommended)
+#### StoreKit 2
 
 ```swift
 import ARCPurchasing
 
 let config = PurchaseConfiguration(
-    productIDs: ["com.app.premium_monthly", "com.app.premium_yearly"],
     entitlementIdentifiers: ["premium"],
     entitlementMapper: { _ in "premium" }   // optional: group products into one entitlement
 )
 
-try await ARCPurchaseManager.shared.configure(
-    with: config,
-    provider: StoreKit2ProviderFactory.make()
+let provider = StoreKit2ProviderFactory.make(
+    productIDs: ["com.app.premium_monthly", "com.app.premium_yearly"]
 )
+
+try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
 ```
 
 #### RevenueCat
@@ -95,13 +95,14 @@ try await ARCPurchaseManager.shared.configure(
 import ARCPurchasing
 import ARCPurchasingRevenueCat
 
-let config = PurchaseConfiguration(
-    apiKey: "your_revenuecat_api_key",
-    entitlementIdentifiers: ["premium"]
-)
+let config = PurchaseConfiguration(entitlementIdentifiers: ["premium"])
 
-try await ARCPurchaseManager.shared.configure(with: config)
+let provider = RevenueCatProviderFactory.make(apiKey: "your_revenuecat_api_key")
+
+try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
 ```
+
+Swapping providers is a one-line change at the factory call site — every other touchpoint in the app stays the same.
 
 ### Common operations (provider-agnostic)
 
@@ -117,7 +118,7 @@ if let product = products.first {
     switch result {
     case .success(let transaction):
         print("Purchased: \(transaction.productID)")
-        // StoreKit 2 only: forward signed payload to your backend
+        // Forward signed payload to your backend when the provider surfaces one.
         if let jws = transaction.jwsRepresentation {
             await myBackend.verifyTransaction(jws: jws)
         }
@@ -131,14 +132,14 @@ if let product = products.first {
 }
 ```
 
-### Backend verification (StoreKit 2)
+### Backend verification
 
-Every successful `PurchaseTransaction` from the StoreKit 2 provider carries the signed JWS payload that App Store issued. Forward it verbatim to your backend (e.g., a Vapor app) to call Apple's `VerifyTransaction` endpoint server-side — no further setup needed.
+Providers that expose a signed App Store payload populate `PurchaseTransaction.jwsRepresentation` on every successful purchase. Forward it verbatim to your backend (e.g., a Vapor app) to call Apple's `VerifyTransaction` endpoint server-side — no further setup needed.
 
-To correlate purchases with backend user accounts, supply an `appAccountTokenProvider` at configure time:
+To correlate purchases with backend user accounts on the StoreKit 2 path, pass an `appAccountTokenProvider` to the factory:
 
 ```swift
-let config = PurchaseConfiguration(
+let provider = StoreKit2ProviderFactory.make(
     productIDs: ["com.app.premium_monthly"],
     appAccountTokenProvider: { currentUser?.appAccountToken }
 )

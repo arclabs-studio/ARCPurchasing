@@ -1,75 +1,61 @@
 # ARCPurchasing — Migration Guide
 
-## From RevenueCat to StoreKit 2
+## Provider Agnosticism (v1)
 
-StoreKit 2 is the recommended path going forward. It removes the RevenueCat SDK dependency, simplifies the build, and uses Apple's first-party APIs for receipts, entitlements, and transaction observation.
+The package is fully provider-agnostic: the shared `PurchaseConfiguration` carries only cross-backend knobs, and each provider owns its own configuration through its factory. Adding a new backend (Adapty, Glassfy, in-house) means writing a new `PurchaseProviding` conformance and a factory — no changes to the shared API surface.
 
-### What changes
+### What changes for callers
 
-| Layer | RevenueCat path | StoreKit 2 path |
-|-------|-----------------|-----------------|
-| Linked products | `ARCPurchasing` + `ARCPurchasingRevenueCat` (+ UI) | `ARCPurchasing` (+ `ARCPurchasingUI`) only |
-| `import` lines | `import ARCPurchasingRevenueCat` | none extra |
-| `PurchaseConfiguration` | `.init(apiKey:)` | `.init(productIDs:)` |
-| `configure()` call | `configure(with: config)` (convenience) | `configure(with: config, provider: StoreKit2ProviderFactory.make())` |
-| Customer Center | `ARCCustomerCenterView` (from `ARCPurchasingRevenueCatUI`) | iOS system Settings → Subscriptions (`managementURL` exposed by `SubscriptionStatus`) |
-| Receipt validation | RevenueCat dashboard | `PurchaseTransaction.jwsRepresentation` → your backend |
-| Entitlement identifiers | RC entitlements (logical names) | Product IDs by default, customisable via `entitlementMapper` closure |
+| Layer | Before (early SK2 drop) | Now (agnostic) |
+|-------|------------------------|----------------|
+| Shared config | `PurchaseConfiguration(apiKey:)` or `PurchaseConfiguration(productIDs:)` | `PurchaseConfiguration(userID:debugLoggingEnabled:entitlementIdentifiers:entitlementMapper:)` |
+| Backend config | Embedded in `PurchaseConfiguration` | On the provider factory call |
+| RC configure | `configure(with: PurchaseConfiguration(apiKey: ...))` | `configure(with: config, provider: RevenueCatProviderFactory.make(apiKey: ...))` |
+| SK2 configure | `configure(with: PurchaseConfiguration(productIDs: ...), provider: StoreKit2ProviderFactory.make())` | `configure(with: config, provider: StoreKit2ProviderFactory.make(productIDs: ...))` |
+| Validation error | `PurchaseError.invalidAPIKey` | `PurchaseError.invalidConfiguration(String)` |
+| `StoreKitVersion` | Lived in core | Lives in `ARCPurchasingRevenueCat` (it is an RC-only knob) |
 
-### What does not change
+### From RevenueCat to StoreKit 2
 
-- `ARCPurchaseManager.shared` API — `purchase()`, `restorePurchases()`, `currentEntitlements`, `subscriptionStatus`, etc.
-- `ARCPaywallView`, `PaywallConfiguration`, `PaywallTheme`, modifiers.
-- Domain models — `PurchaseProduct`, `PurchaseTransaction`, `Entitlement`, `SubscriptionStatus`, `PurchaseResult`, `PurchaseError`.
-- `PurchaseAnalytics` protocol + `PurchaseEvent` enum.
-- Mocks in `Tests/ARCPurchasingTests/Mocks/`.
+1. **Add the StoreKit configuration**. In Xcode, File → New → File → StoreKit Configuration. Add your products with the same identifiers you used in App Store Connect. Attach it to your scheme.
 
-### Migration steps
-
-1. **Create `.storekit` configuration**. In Xcode, File → New → File → StoreKit Configuration. Add your products with the same identifiers you used in App Store Connect. Attach it to your scheme so local builds load it.
-
-2. **Map entitlements**. If you previously used a logical entitlement name like `"premium"`, supply an `entitlementMapper` that returns it for every product ID:
+2. **Swap the factory at the configure call site**:
    ```swift
+   // Before
+   let config = PurchaseConfiguration(entitlementIdentifiers: ["premium"])
+   try await ARCPurchaseManager.shared.configure(
+       with: config,
+       provider: RevenueCatProviderFactory.make(apiKey: "rc_xxx")
+   )
+
+   // After
    let config = PurchaseConfiguration(
-       productIDs: ["com.app.monthly", "com.app.yearly"],
        entitlementIdentifiers: ["premium"],
        entitlementMapper: { _ in "premium" }
    )
-   ```
-   Skip this if you want entitlement IDs to equal product IDs.
-
-3. **Replace the configure call**.
-   ```swift
-   // Before
-   import ARCPurchasingRevenueCat
-   try await ARCPurchaseManager.shared.configure(with: rcConfig)
-
-   // After
    try await ARCPurchaseManager.shared.configure(
-       with: sk2Config,
-       provider: StoreKit2ProviderFactory.make()
+       with: config,
+       provider: StoreKit2ProviderFactory.make(
+           productIDs: ["com.app.monthly", "com.app.yearly"]
+       )
    )
    ```
 
-4. **Drop the RevenueCat product links** from your app target if you no longer need the Customer Center.
+3. **Drop the RevenueCat product links** from your app target if you no longer need the Customer Center (`ARCPurchasingRevenueCatUI`).
 
-5. **Replace `ARCCustomerCenterView` usage**. StoreKit 2 does not ship an equivalent. Either:
+4. **Replace `ARCCustomerCenterView` usage**. StoreKit 2 does not ship an equivalent. Either:
    - Link to the system Settings sheet via `subscriptionStatus.managementURL` (`apps.apple.com/account/subscriptions`), or
    - Adopt SwiftUI's `.manageSubscriptionsSheet(isPresented:)` directly in your view.
 
-6. **Wire your backend (optional)**. If/when you stand up a Vapor server, forward `transaction.jwsRepresentation` from `PurchaseResult.success(_:)` to your `/verify-transaction` endpoint. Use the App Store Server Library to call Apple's `VerifyTransaction` endpoint.
+5. **Wire your backend (optional)**. If/when you stand up a Vapor server, forward `transaction.jwsRepresentation` from `PurchaseResult.success(_:)` to your `/verify-transaction` endpoint. Use the App Store Server Library to call Apple's `VerifyTransaction` endpoint.
 
-7. **Test in the simulator**. StoreKit Configuration files give you instant local purchases — no sandbox account required. Verify subscribe → restore → revoke flows.
-
-### Coexistence
-
-You can leave existing apps on the RevenueCat path indefinitely. Both providers compile against the same `ARCPurchaseManager` API, so callers don't change. New apps should default to StoreKit 2.
+6. **Test in the simulator**. StoreKit Configuration files give you instant local purchases — no sandbox account required.
 
 ### Known gaps in the StoreKit 2 provider (v1)
 
-- **Single subscription group** assumed by `subscriptionStatus()` — picks the first active auto-renewable. If your app has multiple subscription groups, file a feature request.
+- **Single subscription group** assumed by `subscriptionStatus()` — picks the first active auto-renewable. File a feature request if you need multi-group.
 - **Trial vs. intro distinction** not surfaced — both report `EntitlementPeriodType.intro`.
-- **Per-call `appAccountToken` override** not exposed on `purchase()` — set once via `appAccountTokenProvider` at configure time.
+- **Per-call `appAccountToken` override** not exposed on `purchase()` — set once via the factory's `appAccountTokenProvider`.
 - **App Store Server Notifications V2** parsing is intentionally out of scope (handle on your backend).
 
 None of these block production use. Open an issue if any becomes a blocker.

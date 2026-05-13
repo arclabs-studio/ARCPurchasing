@@ -10,28 +10,24 @@ import Foundation
 
 /// Main entry point for ARCPurchasing.
 ///
-/// `ARCPurchaseManager` is the facade that coordinates all purchase operations,
-/// delegating to the configured provider while managing state for SwiftUI integration.
+/// `ARCPurchaseManager` is the facade that coordinates all purchase
+/// operations, delegating to the configured provider while managing
+/// state for SwiftUI integration. The manager is backend-agnostic —
+/// callers select an implementation by passing the appropriate
+/// ``PurchaseProviding`` instance to ``configure(with:provider:analytics:)``.
 ///
 /// ## Usage
 ///
 /// ```swift
-/// // RevenueCat path (requires `import ARCPurchasingRevenueCat`)
-/// let config = PurchaseConfiguration(
-///     apiKey: "your_revenuecat_api_key",
-///     entitlementIdentifiers: ["premium"]
-/// )
-/// try await ARCPurchaseManager.shared.configure(with: config)
+/// // Build a provider from any backend's factory.
+/// let provider = SomeProviderFactory.make(...)
 ///
-/// // StoreKit 2 path (core module only)
+/// // Configure with shared, backend-agnostic options.
 /// let config = PurchaseConfiguration(
-///     productIDs: ["premium_monthly", "premium_yearly"],
-///     entitlementIdentifiers: ["premium"]
+///     entitlementIdentifiers: ["premium"],
+///     entitlementMapper: { _ in "premium" }
 /// )
-/// try await ARCPurchaseManager.shared.configure(
-///     with: config,
-///     provider: StoreKit2ProviderFactory.make()
-/// )
+/// try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
 ///
 /// // Check entitlements
 /// let hasPremium = await ARCPurchaseManager.shared.hasEntitlement("premium")
@@ -103,14 +99,12 @@ public final class ARCPurchaseManager {
 
     /// Configure the purchase manager with an injected provider.
     ///
-    /// This must be called before any other operations, typically during app launch.
-    ///
-    /// Pair with a factory from a backend module:
-    /// - `RevenueCatProviderFactory.make()` from `ARCPurchasingRevenueCat`
-    /// - `StoreKit2ProviderFactory.make()` from `ARCPurchasing`
+    /// Call this once during app launch, before any other operation.
+    /// The provider is supplied by the consuming app from the factory
+    /// of its chosen backend module.
     ///
     /// - Parameters:
-    ///   - config: Purchase configuration with provider-specific settings.
+    ///   - config: Shared, backend-agnostic configuration.
     ///   - provider: The ``PurchaseProviding`` implementation to use.
     ///   - analytics: Optional custom analytics handler.
     /// - Throws: ``PurchaseError`` if configuration fails.
