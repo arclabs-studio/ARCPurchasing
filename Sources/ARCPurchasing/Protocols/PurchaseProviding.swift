@@ -36,7 +36,8 @@ public protocol PurchaseProviding: ProductProviding, TransactionProviding, Entit
     /// This must be called before any other operations.
     ///
     /// - Parameter config: The ``PurchaseConfiguration`` to use.
-    /// - Throws: ``PurchaseError/invalidAPIKey`` if the API key is invalid,
+    /// - Throws: ``PurchaseError/invalidConfiguration(_:)`` when the
+    ///           backend-specific configuration is missing or malformed,
     ///           or other errors during configuration.
     func configure(with config: PurchaseConfiguration) async throws
 

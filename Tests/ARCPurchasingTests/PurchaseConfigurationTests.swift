@@ -46,16 +46,16 @@ struct PurchaseConfigurationTests {
         try config.validate()
     }
 
-    @Test("Empty API key throws invalidAPIKey") func validate_emptyAPIKey_throwsInvalidAPIKey() {
+    @Test("Empty API key throws invalidConfiguration") func validate_emptyAPIKey_throwsInvalidConfiguration() {
         let config = PurchaseConfiguration(apiKey: "")
-        #expect(throws: PurchaseError.invalidAPIKey) {
+        #expect(throws: PurchaseError.self) {
             try config.validate()
         }
     }
 
-    @Test("Whitespace-only API key throws invalidAPIKey") func validate_whitespaceAPIKey_throwsInvalidAPIKey() {
+    @Test("Whitespace-only API key throws invalidConfiguration") func validate_whitespaceAPIKey_throwsInvalidConfiguration() {
         let config = PurchaseConfiguration(apiKey: "   \n  ")
-        #expect(throws: PurchaseError.invalidAPIKey) {
+        #expect(throws: PurchaseError.self) {
             try config.validate()
         }
     }

@@ -192,18 +192,19 @@ public extension PurchaseConfiguration {
     /// - StoreKit 2: requires non-empty ``StoreKit2Configuration/productIDs``.
     /// - RevenueCat: requires non-empty ``apiKey``.
     ///
-    /// - Throws: ``PurchaseError/invalidAPIKey`` if API key is empty (RC path),
-    ///           or ``PurchaseError/invalidAPIKey`` if `productIDs` is empty (SK2 path).
+    /// - Throws: ``PurchaseError/invalidConfiguration(_:)`` when neither
+    ///           the RevenueCat API key nor the StoreKit 2 product IDs are
+    ///           populated.
     func validate() throws {
         if let sk2 = storeKit2 {
             guard !sk2.productIDs.isEmpty else {
-                throw PurchaseError.invalidAPIKey
+                throw PurchaseError.invalidConfiguration("StoreKit 2 productIDs must not be empty.")
             }
             return
         }
 
         guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw PurchaseError.invalidAPIKey
+            throw PurchaseError.invalidConfiguration("RevenueCat API key must not be empty.")
         }
     }
 }

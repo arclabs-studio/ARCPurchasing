@@ -17,8 +17,12 @@ public enum PurchaseError: Error, Sendable, Equatable {
     /// Provider not configured. Call `configure()` first.
     case notConfigured
 
-    /// Invalid API key provided.
-    case invalidAPIKey
+    /// Provider configuration is invalid.
+    ///
+    /// Payload describes the specific reason (e.g., missing credential,
+    /// empty product list, malformed identifier). Providers should pass
+    /// human-readable context that helps the caller fix the issue.
+    case invalidConfiguration(String)
 
     // MARK: - Product Errors
 
@@ -68,8 +72,8 @@ extension PurchaseError: LocalizedError {
         switch self {
         case .notConfigured:
             String(localized: "Purchase provider is not configured. Call configure() first.")
-        case .invalidAPIKey:
-            String(localized: "Invalid API key provided.")
+        case let .invalidConfiguration(reason):
+            String(localized: "Invalid configuration: \(reason)")
         case let .productNotFound(id):
             String(localized: "Product not found: \(id)")
         case let .fetchProductsFailed(reason):
@@ -102,7 +106,7 @@ public extension PurchaseError {
         switch self {
         case .networkError, .timeout:
             true
-        case .notConfigured, .invalidAPIKey, .productNotFound, .userCancelled, .purchaseNotAllowed:
+        case .notConfigured, .invalidConfiguration, .productNotFound, .userCancelled, .purchaseNotAllowed:
             false
         case .fetchProductsFailed, .purchaseFailed, .entitlementVerificationFailed, .paymentPending, .unknown:
             true
@@ -114,7 +118,7 @@ public extension PurchaseError {
         switch self {
         case .notConfigured:
             String(localized: "Please restart the app and try again.")
-        case .invalidAPIKey:
+        case .invalidConfiguration:
             String(localized: "Please contact support.")
         case .networkError, .timeout:
             String(localized: "Please check your internet connection and try again.")
