@@ -16,12 +16,22 @@ import Foundation
 /// ## Usage
 ///
 /// ```swift
-/// // Configure on app launch
+/// // RevenueCat path (requires `import ARCPurchasingRevenueCat`)
 /// let config = PurchaseConfiguration(
 ///     apiKey: "your_revenuecat_api_key",
 ///     entitlementIdentifiers: ["premium"]
 /// )
 /// try await ARCPurchaseManager.shared.configure(with: config)
+///
+/// // StoreKit 2 path (core module only)
+/// let config = PurchaseConfiguration(
+///     productIDs: ["premium_monthly", "premium_yearly"],
+///     entitlementIdentifiers: ["premium"]
+/// )
+/// try await ARCPurchaseManager.shared.configure(
+///     with: config,
+///     provider: StoreKit2ProviderFactory.make()
+/// )
 ///
 /// // Check entitlements
 /// let hasPremium = await ARCPurchaseManager.shared.hasEntitlement("premium")
@@ -91,26 +101,22 @@ public final class ARCPurchaseManager {
 
     // MARK: - Configuration
 
-    /// Configure the purchase manager with RevenueCat.
+    /// Configure the purchase manager with an injected provider.
     ///
     /// This must be called before any other operations, typically during app launch.
     ///
+    /// Pair with a factory from a backend module:
+    /// - `RevenueCatProviderFactory.make()` from `ARCPurchasingRevenueCat`
+    /// - `StoreKit2ProviderFactory.make()` from `ARCPurchasing`
+    ///
     /// - Parameters:
-    ///   - config: Purchase configuration with API key and settings.
+    ///   - config: Purchase configuration with provider-specific settings.
+    ///   - provider: The ``PurchaseProviding`` implementation to use.
     ///   - analytics: Optional custom analytics handler.
     /// - Throws: ``PurchaseError`` if configuration fails.
     public func configure(with config: PurchaseConfiguration,
+                          provider: any PurchaseProviding,
                           analytics: (any PurchaseAnalytics)? = nil) async throws {
-        let provider = RevenueCatProvider(logger: logger)
-        try await configure(with: config, provider: provider, analytics: analytics)
-    }
-
-    // MARK: - Internal (Testing)
-
-    /// Configure with an injected provider. Only visible via `@testable import`.
-    func configure(with config: PurchaseConfiguration,
-                   provider: any PurchaseProviding,
-                   analytics: (any PurchaseAnalytics)? = nil) async throws {
         logger.info("[Purchase] Configuring ARCPurchaseManager")
 
         try await provider.configure(with: config)

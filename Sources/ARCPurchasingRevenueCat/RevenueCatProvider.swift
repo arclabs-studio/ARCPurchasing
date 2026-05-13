@@ -1,11 +1,12 @@
 //
 //  RevenueCatProvider.swift
-//  ARCPurchasing
+//  ARCPurchasingRevenueCat
 //
 //  Created by ARC Labs Studio on 23/01/2025.
 //
 
 import ARCLogger
+import ARCPurchasing
 import Foundation
 import RevenueCat
 

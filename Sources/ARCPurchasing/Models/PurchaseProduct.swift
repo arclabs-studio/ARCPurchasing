@@ -50,12 +50,15 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
     /// Introductory offer (if available).
     public let introductoryOffer: IntroductoryOffer?
 
-    // MARK: - Internal Properties
+    // MARK: - Provider Bridge
 
     /// Original provider product (type-erased).
     ///
-    /// Used internally to perform actual purchase operations.
-    let underlyingProduct: AnySendable
+    /// Providers use this to round-trip native types like RevenueCat's
+    /// `StoreProduct` or StoreKit 2's `Product` through the provider-agnostic
+    /// ``PurchaseProduct`` representation. Consumers should not depend on its
+    /// contents.
+    public let underlyingProduct: AnySendable
 
     // MARK: - Initialization
 
@@ -99,18 +102,23 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
 
     /// Creates a purchase product backed by a provider-specific store product.
     ///
-    /// - Note: `underlyingProduct` must wrap a `StoreProduct` instance for
-    ///   RevenueCat-backed purchases to succeed.
-    init(id: String,
-         displayName: String,
-         description: String,
-         price: Decimal,
-         displayPrice: String,
-         currencyCode: String,
-         type: ProductType,
-         subscriptionPeriod: SubscriptionPeriod? = nil,
-         introductoryOffer: IntroductoryOffer? = nil,
-         underlyingProduct: AnySendable) {
+    /// Intended for provider implementations (RevenueCat, StoreKit 2). The
+    /// `underlyingProduct` must wrap the provider's native product type for
+    /// purchases to succeed.
+    ///
+    /// - Note: For RevenueCat-backed purchases, `underlyingProduct` must wrap
+    ///   a `StoreProduct` instance. For StoreKit 2, it must wrap a native
+    ///   `Product` instance.
+    public init(id: String,
+                displayName: String,
+                description: String,
+                price: Decimal,
+                displayPrice: String,
+                currencyCode: String,
+                type: ProductType,
+                subscriptionPeriod: SubscriptionPeriod? = nil,
+                introductoryOffer: IntroductoryOffer? = nil,
+                underlyingProduct: AnySendable) {
         self.id = id
         self.displayName = displayName
         self.description = description

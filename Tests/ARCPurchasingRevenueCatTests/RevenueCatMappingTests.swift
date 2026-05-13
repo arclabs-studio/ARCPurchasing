@@ -1,13 +1,14 @@
 //
 //  RevenueCatMappingTests.swift
-//  ARCPurchasing
+//  ARCPurchasingRevenueCatTests
 //
 //  Created by ARC Labs Studio on 24/03/2025.
 //
 
+import ARCPurchasing
 import RevenueCat
 import Testing
-@testable import ARCPurchasing
+@testable import ARCPurchasingRevenueCat
 
 // MARK: - ProductType Mapping
 

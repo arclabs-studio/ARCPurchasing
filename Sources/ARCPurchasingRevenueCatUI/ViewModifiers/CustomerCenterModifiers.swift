@@ -1,6 +1,6 @@
 //
 //  CustomerCenterModifiers.swift
-//  ARCPurchasingUI
+//  ARCPurchasingRevenueCatUI
 //
 //  Created by ARC Labs Studio on 24/03/2025.
 //
