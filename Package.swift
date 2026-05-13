@@ -39,7 +39,8 @@ let package = Package(name: "ARCPurchasing",
                                   swiftSettings: [.enableUpcomingFeature("StrictConcurrency")]),
                           .testTarget(name: "ARCPurchasingTests",
                                       dependencies: ["ARCPurchasing"],
-                                      path: "Tests/ARCPurchasingTests"),
+                                      path: "Tests/ARCPurchasingTests",
+                                      resources: [.copy("Resources/ARCPurchasing.storekit")]),
 
                           // Custom paywall UI — provider-agnostic
                           .target(name: "ARCPurchasingUI",
