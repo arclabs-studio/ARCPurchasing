@@ -21,6 +21,7 @@ struct PurchaseResultTests {
         #expect(PurchaseResult.cancelled.isSuccess == false)
         #expect(PurchaseResult.pending.isSuccess == false)
         #expect(PurchaseResult.requiresAction("test").isSuccess == false)
+        #expect(PurchaseResult.restored.isSuccess == false)
         #expect(PurchaseResult.unknown.isSuccess == false)
     }
 
@@ -36,6 +37,7 @@ struct PurchaseResultTests {
         #expect(PurchaseResult.cancelled.transaction == nil)
         #expect(PurchaseResult.pending.transaction == nil)
         #expect(PurchaseResult.requiresAction("test").transaction == nil)
+        #expect(PurchaseResult.restored.transaction == nil)
         #expect(PurchaseResult.unknown.transaction == nil)
     }
 
@@ -62,13 +64,44 @@ struct PurchaseResultTests {
         #expect(PurchaseResult.unknown.isPending == false)
     }
 
+    // MARK: - Restored Tests
+
+    @Test("isRestored returns true for restored case") func isRestored_returnsTrueForRestoredCase() {
+        #expect(PurchaseResult.restored.isRestored == true)
+    }
+
+    @Test("isRestored returns false for non-restored cases") func isRestored_returnsFalseForNonRestoredCases() {
+        let transaction = PurchaseTransaction.mock()
+        #expect(PurchaseResult.success(transaction).isRestored == false)
+        #expect(PurchaseResult.cancelled.isRestored == false)
+        #expect(PurchaseResult.pending.isRestored == false)
+        #expect(PurchaseResult.requiresAction("test").isRestored == false)
+        #expect(PurchaseResult.unknown.isRestored == false)
+    }
+
+    // MARK: - Completed Tests
+
+    @Test("isCompleted returns true for success and restored") func isCompleted_returnsTrueForCompletedOutcomes() {
+        #expect(PurchaseResult.success(PurchaseTransaction.mock()).isCompleted == true)
+        #expect(PurchaseResult.restored.isCompleted == true)
+    }
+
+    @Test("isCompleted returns false for non-completed cases") func isCompleted_returnsFalseForNonCompletedCases() {
+        #expect(PurchaseResult.cancelled.isCompleted == false)
+        #expect(PurchaseResult.pending.isCompleted == false)
+        #expect(PurchaseResult.requiresAction("test").isCompleted == false)
+        #expect(PurchaseResult.unknown.isCompleted == false)
+    }
+
     // MARK: - Equatable Tests
 
     @Test("PurchaseResult equality works correctly") func purchaseResult_equalityWorks() {
         #expect(PurchaseResult.cancelled == PurchaseResult.cancelled)
         #expect(PurchaseResult.pending == PurchaseResult.pending)
         #expect(PurchaseResult.unknown == PurchaseResult.unknown)
+        #expect(PurchaseResult.restored == PurchaseResult.restored)
         #expect(PurchaseResult.requiresAction("test") == PurchaseResult.requiresAction("test"))
         #expect(PurchaseResult.requiresAction("test") != PurchaseResult.requiresAction("other"))
+        #expect(PurchaseResult.restored != PurchaseResult.unknown)
     }
 }
