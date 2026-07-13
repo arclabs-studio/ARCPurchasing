@@ -424,7 +424,6 @@ public extension ARCPaywallView {
 
 // MARK: - Previews
 
-// swiftlint:disable force_unwrapping
 private let _previewConfig = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                                                   title: "Unlock the full\nForks experience",
                                                   subtitle: "Your food journey, without limits",
@@ -443,7 +442,6 @@ private let _previewConfig = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                                                   ctaButtonTitle: "Start Premium",
                                                   termsOfServiceURL: URL(string: "https://example.com/terms")!,
                                                   privacyPolicyURL: URL(string: "https://example.com/privacy")!)
-// swiftlint:enable force_unwrapping
 
 #Preview("Dark — Burgundy") {
     ARCPaywallView(configuration: _previewConfig,
@@ -457,7 +455,7 @@ private let _previewConfig = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                    previewProducts: ARCPaywallView.previewMockProducts)
 }
 
-// swiftlint:disable force_unwrapping line_length
+// swiftlint:disable line_length
 private let _previewConfigNoLifetime = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                                                             title: "Unlock the full\nForks experience",
                                                             subtitle: "Your food journey, without limits",
@@ -470,7 +468,7 @@ private let _previewConfigNoLifetime = PaywallConfiguration(headerLabel: "FORKS 
                                                             ctaButtonTitle: "Start Premium",
                                                             termsOfServiceURL: URL(string: "https://example.com/terms")!,
                                                             privacyPolicyURL: URL(string: "https://example.com/privacy")!)
-// swiftlint:enable force_unwrapping line_length
+// swiftlint:enable line_length
 
 #Preview("Dark — No Lifetime") {
     ARCPaywallView(configuration: _previewConfigNoLifetime,

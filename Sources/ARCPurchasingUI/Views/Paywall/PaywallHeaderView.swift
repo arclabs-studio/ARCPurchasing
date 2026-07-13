@@ -63,14 +63,12 @@ struct PaywallHeaderView: View {
     }
 }
 
-// swiftlint:disable force_unwrapping
 private let _previewConfig = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                                                   title: "Unlock the full\nForks experience",
                                                   subtitle: "Your food journey, without limits",
                                                   iconName: "fork.knife",
                                                   termsOfServiceURL: URL(string: "https://example.com/terms")!,
                                                   privacyPolicyURL: URL(string: "https://example.com/privacy")!)
-// swiftlint:enable force_unwrapping
 
 #Preview("Dark") {
     PaywallHeaderView(configuration: _previewConfig, theme: .darkBurgundy)
