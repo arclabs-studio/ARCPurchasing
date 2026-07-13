@@ -15,18 +15,22 @@ public extension View {
     ///   - isPresented: Binding that controls sheet presentation.
     ///   - configuration: Paywall content configuration.
     ///   - theme: Visual theme. Defaults to `PaywallTheme.default`.
-    ///   - onPurchaseCompleted: Called after a successful purchase or restore.
+    ///   - onPurchaseCompleted: Called when a purchase attempt resolves or entitlements are
+    ///     restored, carrying the `PurchaseResult`. The sheet auto-dismisses only on a
+    ///     completed outcome (success or restore).
     func presentARCPaywall(isPresented: Binding<Bool>,
                            configuration: PaywallConfiguration,
                            theme: PaywallTheme = .default,
-                           onPurchaseCompleted: (() -> Void)? = nil) -> some View {
+                           onPurchaseCompleted: (@Sendable (PurchaseResult) -> Void)? = nil) -> some View {
         sheet(isPresented: isPresented) {
             ARCPaywallView(configuration: configuration,
                            theme: theme,
                            onDismiss: { isPresented.wrappedValue = false },
-                           onPurchaseCompleted: {
-                               isPresented.wrappedValue = false
-                               onPurchaseCompleted?()
+                           onPurchaseCompleted: { result in
+                               if result.isCompleted {
+                                   isPresented.wrappedValue = false
+                               }
+                               onPurchaseCompleted?(result)
                            })
         }
     }
@@ -40,11 +44,12 @@ public extension View {
     ///   - entitlement: The entitlement identifier required to suppress the paywall.
     ///   - configuration: Paywall content configuration.
     ///   - theme: Visual theme. Defaults to `PaywallTheme.default`.
-    ///   - onPurchaseCompleted: Called after a successful purchase or restore.
+    ///   - onPurchaseCompleted: Called when a purchase attempt resolves or entitlements are
+    ///     restored, carrying the `PurchaseResult`.
     func presentARCPaywallIfNeeded(entitlement: String,
                                    configuration: PaywallConfiguration,
                                    theme: PaywallTheme = .default,
-                                   onPurchaseCompleted: (() -> Void)? = nil) -> some View {
+                                   onPurchaseCompleted: (@Sendable (PurchaseResult) -> Void)? = nil) -> some View {
         modifier(PaywallIfNeededModifier(entitlement: entitlement,
                                          configuration: configuration,
                                          theme: theme,
@@ -58,7 +63,7 @@ private struct PaywallIfNeededModifier: ViewModifier {
     let entitlement: String
     let configuration: PaywallConfiguration
     let theme: PaywallTheme
-    let onPurchaseCompleted: (() -> Void)?
+    let onPurchaseCompleted: (@Sendable (PurchaseResult) -> Void)?
 
     @State private var isPresented = false
     @State private var purchaseManager = ARCPurchaseManager.shared

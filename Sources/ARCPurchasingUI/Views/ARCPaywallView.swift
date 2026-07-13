@@ -48,7 +48,7 @@ public struct ARCPaywallView: View {
     private let theme: PaywallTheme
     private let previewProducts: [PurchaseProduct]?
     private let onDismiss: (() -> Void)?
-    private let onPurchaseCompleted: (() -> Void)?
+    private let onPurchaseCompleted: (@Sendable (PurchaseResult) -> Void)?
 
     @State private var purchaseManager = ARCPurchaseManager.shared
 
@@ -73,12 +73,14 @@ public struct ARCPaywallView: View {
     ///     paywall without a network connection — useful for Xcode Previews and demo apps.
     ///     Products provided here cannot be purchased (they carry no underlying store product).
     ///   - onDismiss: Called when the user dismisses without purchasing.
-    ///   - onPurchaseCompleted: Called after a successful purchase or restore.
+    ///   - onPurchaseCompleted: Called when a purchase attempt resolves or entitlements are
+    ///     restored, carrying the `PurchaseResult` so callers can react per outcome
+    ///     (success, cancelled, pending, requires-action, restored).
     public init(configuration: PaywallConfiguration,
                 theme: PaywallTheme = .default,
                 previewProducts: [PurchaseProduct]? = nil,
                 onDismiss: (() -> Void)? = nil,
-                onPurchaseCompleted: (() -> Void)? = nil) {
+                onPurchaseCompleted: (@Sendable (PurchaseResult) -> Void)? = nil) {
         self.configuration = configuration
         self.theme = theme
         self.previewProducts = previewProducts
@@ -294,17 +296,21 @@ private extension ARCPaywallView {
         do {
             let result = try await purchaseManager.purchase(product)
             switch result {
-            case .success:
+            case let .success(transaction):
                 await purchaseManager.refreshState()
-                onPurchaseCompleted?()
-            case .cancelled, .pending:
-                break
+                onPurchaseCompleted?(.success(transaction))
+            case .cancelled:
+                onPurchaseCompleted?(.cancelled)
+            case .pending:
+                onPurchaseCompleted?(.pending)
             case let .requiresAction(message):
                 purchaseError = message
+                onPurchaseCompleted?(.requiresAction(message))
             case .restored:
-                break
+                onPurchaseCompleted?(.restored)
             case .unknown:
                 purchaseError = "An unknown error occurred. Please try again."
+                onPurchaseCompleted?(.unknown)
             }
         } catch {
             purchaseError = error.localizedDescription
@@ -316,7 +322,7 @@ private extension ARCPaywallView {
     func restore() async {
         do {
             try await purchaseManager.restorePurchases()
-            onPurchaseCompleted?()
+            onPurchaseCompleted?(.restored)
         } catch {
             purchaseError = error.localizedDescription
         }
