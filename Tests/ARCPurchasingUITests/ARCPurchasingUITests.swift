@@ -41,7 +41,7 @@ struct ARCPurchasingUITests {
         _ = ARCPaywallView(configuration: Self.demoConfig,
                            theme: .darkBurgundy,
                            onDismiss: {},
-                           onPurchaseCompleted: {})
+                           onPurchaseCompleted: { _ in })
     }
 
     @Test("ARCPaywallView accepts lightGold theme") func arcPaywallView_lightGoldTheme() {
