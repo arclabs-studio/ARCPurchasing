@@ -19,7 +19,6 @@ import Testing
 struct ARCPurchasingUITests {
     // MARK: - Helpers
 
-    // swiftlint:disable force_unwrapping
     private static let demoConfig = PaywallConfiguration(headerLabel: "TEST PREMIUM",
                                                          title: "Test Title",
                                                          subtitle: "Test subtitle",
@@ -29,7 +28,6 @@ struct ARCPurchasingUITests {
                                                          ctaButtonTitle: "Subscribe",
                                                          termsOfServiceURL: URL(string: "https://example.com/terms")!,
                                                          privacyPolicyURL: URL(string: "https://example.com/privacy")!)
-    // swiftlint:enable force_unwrapping
 
     // MARK: - View Instantiation
 

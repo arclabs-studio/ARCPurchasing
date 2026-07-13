@@ -81,10 +81,8 @@ struct PaywallFooterView: View {
 
 // MARK: - Previews
 
-// swiftlint:disable force_unwrapping
 private let _previewTOS = URL(string: "https://example.com/terms")!
 private let _previewPrivacy = URL(string: "https://example.com/privacy")!
-// swiftlint:enable force_unwrapping
 
 #Preview("Dark") {
     PaywallFooterView(renewalDisclosure: "Renews automatically. Cancel anytime.",
