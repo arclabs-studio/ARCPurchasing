@@ -301,6 +301,8 @@ private extension ARCPaywallView {
                 break
             case let .requiresAction(message):
                 purchaseError = message
+            case .restored:
+                break
             case .unknown:
                 purchaseError = "An unknown error occurred. Please try again."
             }

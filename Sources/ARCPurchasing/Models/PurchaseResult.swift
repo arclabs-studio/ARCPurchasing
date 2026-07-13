@@ -25,6 +25,8 @@ import Foundation
 ///     print("Awaiting approval")
 /// case .requiresAction(let action):
 ///     print("Action required: \(action)")
+/// case .restored:
+///     print("Entitlements restored")
 /// case .unknown:
 ///     print("Unknown result")
 /// }
@@ -41,6 +43,12 @@ public enum PurchaseResult: Sendable, Equatable {
 
     /// Purchase requires user action (e.g., payment method update).
     case requiresAction(String)
+
+    /// All previously-purchased entitlements were restored.
+    ///
+    /// Carries no transaction — the restore path refreshes entitlements in bulk
+    /// rather than surfacing an individual purchase.
+    case restored
 
     /// Unknown result.
     case unknown
@@ -71,5 +79,15 @@ public extension PurchaseResult {
     var isPending: Bool {
         if case .pending = self { return true }
         return false
+    }
+
+    /// Whether this result came from restoring previous purchases.
+    var isRestored: Bool {
+        self == .restored
+    }
+
+    /// Whether the paywall goal was met — a fresh successful purchase or a restore.
+    var isCompleted: Bool {
+        isSuccess || isRestored
     }
 }

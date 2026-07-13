@@ -190,6 +190,11 @@ public final class ARCPurchaseManager {
         case let .requiresAction(action):
             await analytics?.track(.purchaseFailed(productID: product.id, error: action))
 
+        case .restored:
+            // `purchase(_:)` never yields `.restored` — restores flow through
+            // `restorePurchases()`. Present only to keep the switch exhaustive.
+            break
+
         case .unknown:
             await analytics?.track(.purchaseFailed(productID: product.id, error: "Unknown error"))
         }
