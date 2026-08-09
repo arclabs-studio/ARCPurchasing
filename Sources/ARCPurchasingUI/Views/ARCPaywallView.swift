@@ -116,7 +116,11 @@ public struct ARCPaywallView: View {
             await loadProducts()
         }
         .alert("Purchase Error", isPresented: Binding(get: { purchaseError != nil },
-                                                      set: { if !$0 { purchaseError = nil } })) {
+                                                      set: {
+                                                          if !$0 {
+                                                              purchaseError = nil
+                                                          }
+                                                      })) {
             Button("OK") { purchaseError = nil }
         } message: {
             Text(purchaseError ?? "")
@@ -381,7 +385,9 @@ private enum LoadingState {
     case error(String)
 
     var isLoaded: Bool {
-        if case .loaded = self { return true }
+        if case .loaded = self {
+            return true
+        }
         return false
     }
 }

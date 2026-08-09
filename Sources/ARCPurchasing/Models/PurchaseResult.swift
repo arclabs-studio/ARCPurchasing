@@ -59,25 +59,33 @@ public enum PurchaseResult: Sendable, Equatable {
 public extension PurchaseResult {
     /// Whether the purchase was successful.
     var isSuccess: Bool {
-        if case .success = self { return true }
+        if case .success = self {
+            return true
+        }
         return false
     }
 
     /// The transaction if purchase was successful, `nil` otherwise.
     var transaction: PurchaseTransaction? {
-        if case let .success(transaction) = self { return transaction }
+        if case let .success(transaction) = self {
+            return transaction
+        }
         return nil
     }
 
     /// Whether the user cancelled the purchase.
     var isCancelled: Bool {
-        if case .cancelled = self { return true }
+        if case .cancelled = self {
+            return true
+        }
         return false
     }
 
     /// Whether the purchase is pending approval.
     var isPending: Bool {
-        if case .pending = self { return true }
+        if case .pending = self {
+            return true
+        }
         return false
     }
 
