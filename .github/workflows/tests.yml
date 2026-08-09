@@ -1,3 +1,8 @@
+# ARCDevTools Workflow Template (Swift Package)
+# Source: https://github.com/arclabs-studio/ARCDevTools/workflows-spm/tests.yml
+#
+# This file was copied from ARCDevTools. You can customize it for your project.
+# To update: re-run ./ARCDevTools/arcdevtools-setup or manually copy from ARCDevTools/workflows-spm/
 name: Tests
 
 on:
@@ -30,7 +35,6 @@ jobs:
   test-macos:
     name: Build (macOS)
     runs-on: macos-15
-    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -49,7 +53,6 @@ jobs:
     needs: check-platforms
     if: needs.check-platforms.outputs.supports-linux == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     container:
       image: swift:6.0
 

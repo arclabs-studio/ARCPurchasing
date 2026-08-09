@@ -1,19 +1,30 @@
 {
   "ignorePatterns": [
     {
-      "pattern": "^https://github.com/arclabs-studio/ARCPurchasing/compare/v",
-      "comment": "GitHub compare links for unreleased versions"
+      "pattern": "^http://localhost"
     },
     {
-      "pattern": "^https://github.com/arclabs-studio/ARCPurchasing/releases/tag/v",
-      "comment": "GitHub release links for unreleased versions"
-    },
-    {
-      "pattern": "^\\.\\./\\.\\./ARCKnowledge/",
-      "comment": "Relative links to ARCKnowledge documentation"
+      "pattern": "^http://127.0.0.1"
     }
   ],
+  "replacementPatterns": [
+    {
+      "pattern": "^/",
+      "replacement": "{{BASEURL}}/"
+    }
+  ],
+  "httpHeaders": [
+    {
+      "urls": ["https://github.com"],
+      "headers": {
+        "Accept": "text/html",
+        "User-Agent": "Mozilla/5.0 (compatible; LinkChecker/1.0)"
+      }
+    }
+  ],
+  "timeout": "20s",
   "retryOn429": true,
   "retryCount": 3,
-  "aliveStatusCodes": [200, 206]
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206, 302]
 }
