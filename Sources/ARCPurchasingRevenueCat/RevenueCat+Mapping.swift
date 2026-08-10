@@ -144,24 +144,26 @@ extension RevenueCat.PeriodType {
 
 extension CustomerInfo {
     /// Converts RevenueCat customer info to ``SubscriptionStatus``.
-    func toSubscriptionStatus() -> SubscriptionStatus {
-        let activeSubscriptions = activeSubscriptions
-        let isSubscribed = !activeSubscriptions.isEmpty
+    ///
+    /// - Parameter configuredEntitlementIdentifiers: Entitlement
+    ///   identifiers the app tracks (from
+    ///   ``PurchaseConfiguration/entitlementIdentifiers``). Any active
+    ///   entitlement in this set counts as subscribed — covering
+    ///   promotional grants and lifetime purchases that never appear in
+    ///   `activeSubscriptions`. Empty set preserves legacy
+    ///   subscriptions-only behavior.
+    func toSubscriptionStatus(configuredEntitlementIdentifiers: Set<String> = []) -> SubscriptionStatus {
+        let snapshots = entitlements.active.values.map {
+            ActiveEntitlementSnapshot(identifier: $0.identifier,
+                                      productIdentifier: $0.productIdentifier,
+                                      expirationDate: $0.expirationDate,
+                                      willRenew: $0.willRenew,
+                                      billingIssueDetectedAt: $0.billingIssueDetectedAt)
+        }
 
-        // Find the active entitlement with the latest expiration
-        let activeEntitlement = entitlements.active.values.first
-
-        // Grace period: billing issue detected but subscription is still active (RC keeps it alive briefly)
-        let isInGracePeriod = activeEntitlement.map {
-            $0.billingIssueDetectedAt != nil && $0.isActive
-        } ?? false
-
-        return SubscriptionStatus(isSubscribed: isSubscribed,
-                                  activeProductID: activeEntitlement?.productIdentifier,
-                                  expiresDate: activeEntitlement?.expirationDate,
-                                  willRenew: activeEntitlement?.willRenew ?? false,
-                                  isInBillingRetry: activeEntitlement?.billingIssueDetectedAt != nil,
-                                  isInGracePeriod: isInGracePeriod,
-                                  managementURL: managementURL)
+        return SubscriptionStatusResolver.resolve(activeSubscriptions: activeSubscriptions,
+                                                  activeEntitlements: snapshots,
+                                                  configuredIdentifiers: configuredEntitlementIdentifiers,
+                                                  managementURL: managementURL)
     }
 }
