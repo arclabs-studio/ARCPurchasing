@@ -81,8 +81,8 @@ struct PaywallFooterView: View {
 
 // MARK: - Previews
 
-private let _previewTOS = URL(string: "https://example.com/terms")!
-private let _previewPrivacy = URL(string: "https://example.com/privacy")!
+private let _previewTOS = URL(string: "https://example.com/terms") ?? URL(fileURLWithPath: "/")
+private let _previewPrivacy = URL(string: "https://example.com/privacy") ?? URL(fileURLWithPath: "/")
 
 #Preview("Dark") {
     PaywallFooterView(renewalDisclosure: "Renews automatically. Cancel anytime.",
