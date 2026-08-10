@@ -446,8 +446,10 @@ private let _previewConfig = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                                                   lifetimeProductID: "com.app.premium.lifetime",
                                                   lifetimeSubtitle: "One-time purchase · Limited offer",
                                                   ctaButtonTitle: "Start Premium",
-                                                  termsOfServiceURL: URL(string: "https://example.com/terms")!,
-                                                  privacyPolicyURL: URL(string: "https://example.com/privacy")!)
+                                                  termsOfServiceURL: URL(string: "https://example.com/terms") ??
+                                                      URL(fileURLWithPath: "/"),
+                                                  privacyPolicyURL: URL(string: "https://example.com/privacy") ??
+                                                      URL(fileURLWithPath: "/"))
 
 #Preview("Dark — Burgundy") {
     ARCPaywallView(configuration: _previewConfig,
@@ -472,8 +474,10 @@ private let _previewConfigNoLifetime = PaywallConfiguration(headerLabel: "FORKS 
                                                                              description: "tailored to your taste")],
                                                             highlightedProductID: "com.app.premium.yearly",
                                                             ctaButtonTitle: "Start Premium",
-                                                            termsOfServiceURL: URL(string: "https://example.com/terms")!,
-                                                            privacyPolicyURL: URL(string: "https://example.com/privacy")!)
+                                                            termsOfServiceURL: URL(string: "https://example.com/terms") ??
+                                                                URL(fileURLWithPath: "/"),
+                                                            privacyPolicyURL: URL(string: "https://example.com/privacy") ??
+                                                                URL(fileURLWithPath: "/"))
 // swiftlint:enable line_length
 
 #Preview("Dark — No Lifetime") {

@@ -26,8 +26,10 @@ struct ARCPurchasingUITests {
                                                          features: [.init(highlightedText: "Feature one",
                                                                           description: "description")],
                                                          ctaButtonTitle: "Subscribe",
-                                                         termsOfServiceURL: URL(string: "https://example.com/terms")!,
-                                                         privacyPolicyURL: URL(string: "https://example.com/privacy")!)
+                                                         termsOfServiceURL: URL(string: "https://example.com/terms") ??
+                                                             URL(fileURLWithPath: "/"),
+                                                         privacyPolicyURL: URL(string: "https://example.com/privacy") ??
+                                                             URL(fileURLWithPath: "/"))
 
     // MARK: - View Instantiation
 

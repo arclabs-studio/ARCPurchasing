@@ -67,8 +67,10 @@ private let _previewConfig = PaywallConfiguration(headerLabel: "FORKS PREMIUM",
                                                   title: "Unlock the full\nForks experience",
                                                   subtitle: "Your food journey, without limits",
                                                   iconName: "fork.knife",
-                                                  termsOfServiceURL: URL(string: "https://example.com/terms")!,
-                                                  privacyPolicyURL: URL(string: "https://example.com/privacy")!)
+                                                  termsOfServiceURL: URL(string: "https://example.com/terms") ??
+                                                      URL(fileURLWithPath: "/"),
+                                                  privacyPolicyURL: URL(string: "https://example.com/privacy") ??
+                                                      URL(fileURLWithPath: "/"))
 
 #Preview("Dark") {
     PaywallHeaderView(configuration: _previewConfig, theme: .darkBurgundy)
