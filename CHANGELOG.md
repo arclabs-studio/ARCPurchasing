@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-10
+
+### Fixed
+
+- `SubscriptionStatus.isSubscribed` now derives from the configured
+  `PurchaseConfiguration.entitlementIdentifiers` in addition to store
+  subscriptions. Promotional entitlements granted from the RevenueCat
+  dashboard and lifetime (non-consumable) purchases now unlock
+  subscription state. Empty `entitlementIdentifiers` preserves the
+  legacy subscriptions-only behavior.
+- Primary entitlement selection is now deterministic (latest expiration
+  wins; non-expiring lifetime entitlements sort first), replacing the
+  previous arbitrary `entitlements.active.values.first` pick.
+
 ## [1.0.0] - 2025-01-23
 
 ### Added

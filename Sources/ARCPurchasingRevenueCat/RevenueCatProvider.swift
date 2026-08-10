@@ -228,7 +228,8 @@ public actor RevenueCatProvider: PurchaseProviding {
 
         do {
             let customerInfo = try await Purchases.shared.customerInfo()
-            return customerInfo.toSubscriptionStatus()
+            let identifiers = configuration?.entitlementIdentifiers ?? []
+            return customerInfo.toSubscriptionStatus(configuredEntitlementIdentifiers: identifiers)
         } catch {
             logger.error("[Purchase] Failed to get subscription status: \(error.localizedDescription)")
             return nil
