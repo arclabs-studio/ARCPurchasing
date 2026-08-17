@@ -41,7 +41,9 @@ struct PaywallFooterView: View {
             .foregroundStyle(theme.secondaryTextColor)
         }
         .padding(.horizontal, 24)
-        .padding(.bottom, 8)
+        // Detaches the disclosure from the CTA above and the links from the safe area below
+        .padding(.top, 12)
+        .padding(.bottom, 12)
     }
 
     private var restoreButton: some View {
