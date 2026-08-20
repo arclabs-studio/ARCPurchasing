@@ -13,7 +13,9 @@ final class MockAnalytics: PurchaseAnalytics, @unchecked Sendable {
     // MARK: - Call Tracking
 
     private(set) var trackedEvents: [PurchaseEvent] = []
-    var trackCalled: Bool { !trackedEvents.isEmpty }
+    var trackCalled: Bool {
+        !trackedEvents.isEmpty
+    }
 
     // MARK: - PurchaseAnalytics
 

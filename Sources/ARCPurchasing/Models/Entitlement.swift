@@ -51,14 +51,12 @@ public struct Entitlement: Sendable, Equatable, Identifiable {
     ///   - expiresDate: Expiration date.
     ///   - willRenew: Whether it will auto-renew.
     ///   - periodType: The current period type.
-    public init(
-        id: String,
-        isActive: Bool,
-        productIdentifier: String? = nil,
-        expiresDate: Date? = nil,
-        willRenew: Bool = false,
-        periodType: EntitlementPeriodType = .normal
-    ) {
+    public init(id: String,
+                isActive: Bool,
+                productIdentifier: String? = nil,
+                expiresDate: Date? = nil,
+                willRenew: Bool = false,
+                periodType: EntitlementPeriodType = .normal) {
         self.id = id
         self.isActive = isActive
         self.productIdentifier = productIdentifier
@@ -70,19 +68,19 @@ public struct Entitlement: Sendable, Equatable, Identifiable {
 
 // MARK: - Convenience Properties
 
-extension Entitlement {
+public extension Entitlement {
     /// Whether this entitlement is in a trial period.
-    public var isInTrial: Bool {
+    var isInTrial: Bool {
         periodType == .trial
     }
 
     /// Whether this entitlement is in an introductory period.
-    public var isInIntro: Bool {
+    var isInIntro: Bool {
         periodType == .intro
     }
 
     /// Whether this entitlement is about to expire (within 7 days).
-    public var isExpiringSoon: Bool {
+    var isExpiringSoon: Bool {
         guard let expiresDate else { return false }
         let sevenDaysFromNow = Date().addingTimeInterval(7 * 24 * 60 * 60)
         return expiresDate < sevenDaysFromNow

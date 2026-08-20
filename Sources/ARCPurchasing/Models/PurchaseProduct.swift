@@ -50,16 +50,24 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
     /// Introductory offer (if available).
     public let introductoryOffer: IntroductoryOffer?
 
-    // MARK: - Internal Properties
+    // MARK: - Provider Bridge
 
     /// Original provider product (type-erased).
     ///
-    /// Used internally to perform actual purchase operations.
-    let underlyingProduct: AnySendable
+    /// Providers use this to round-trip their own native product type
+    /// through the provider-agnostic ``PurchaseProduct`` representation.
+    /// Consumers should not depend on its contents — the concrete type
+    /// is an implementation detail of the active provider.
+    public let underlyingProduct: AnySendable
 
     // MARK: - Initialization
 
-    /// Creates a new purchase product.
+    /// Creates a purchase product for external use (testing, mocking, previews).
+    ///
+    /// Products created with this initializer cannot be purchased —
+    /// `ARCPurchaseManager.purchase(_:)` will throw `PurchaseError.productNotFound`
+    /// since no underlying store product is attached. Use products returned by
+    /// `fetchProducts(for:)` or `fetchOfferings()` for actual purchases.
     ///
     /// - Parameters:
     ///   - id: Unique product identifier.
@@ -71,19 +79,43 @@ public struct PurchaseProduct: Identifiable, Sendable, Equatable {
     ///   - type: Product type.
     ///   - subscriptionPeriod: Subscription period (optional).
     ///   - introductoryOffer: Introductory offer (optional).
-    ///   - underlyingProduct: Type-erased provider product.
-    public init(
-        id: String,
-        displayName: String,
-        description: String,
-        price: Decimal,
-        displayPrice: String,
-        currencyCode: String,
-        type: ProductType,
-        subscriptionPeriod: SubscriptionPeriod? = nil,
-        introductoryOffer: IntroductoryOffer? = nil,
-        underlyingProduct: AnySendable
-    ) {
+    public init(id: String,
+                displayName: String,
+                description: String,
+                price: Decimal,
+                displayPrice: String,
+                currencyCode: String,
+                type: ProductType,
+                subscriptionPeriod: SubscriptionPeriod? = nil,
+                introductoryOffer: IntroductoryOffer? = nil) {
+        self.id = id
+        self.displayName = displayName
+        self.description = description
+        self.price = price
+        self.displayPrice = displayPrice
+        self.currencyCode = currencyCode
+        self.type = type
+        self.subscriptionPeriod = subscriptionPeriod
+        self.introductoryOffer = introductoryOffer
+        underlyingProduct = AnySendable(())
+    }
+
+    /// Creates a purchase product backed by a provider-specific store product.
+    ///
+    /// Intended for provider implementations. The `underlyingProduct`
+    /// must wrap the provider's native product type for purchases to
+    /// succeed; what that concrete type is depends entirely on the
+    /// active provider.
+    public init(id: String,
+                displayName: String,
+                description: String,
+                price: Decimal,
+                displayPrice: String,
+                currencyCode: String,
+                type: ProductType,
+                subscriptionPeriod: SubscriptionPeriod? = nil,
+                introductoryOffer: IntroductoryOffer? = nil,
+                underlyingProduct: AnySendable) {
         self.id = id
         self.displayName = displayName
         self.description = description
@@ -174,12 +206,10 @@ public struct IntroductoryOffer: Sendable, Equatable {
     ///   - displayPrice: Localized price string.
     ///   - period: Offer period.
     ///   - paymentMode: Payment mode.
-    public init(
-        price: Decimal,
-        displayPrice: String,
-        period: SubscriptionPeriod,
-        paymentMode: PaymentMode
-    ) {
+    public init(price: Decimal,
+                displayPrice: String,
+                period: SubscriptionPeriod,
+                paymentMode: PaymentMode) {
         self.price = price
         self.displayPrice = displayPrice
         self.period = period

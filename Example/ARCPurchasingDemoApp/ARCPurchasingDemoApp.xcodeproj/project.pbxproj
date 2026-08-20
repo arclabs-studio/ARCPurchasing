@@ -12,6 +12,7 @@
 		A1000003229B0001 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000013229B0001 /* PaywallView.swift */; };
 		A1000004229B0001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000014229B0001 /* Assets.xcassets */; };
 		A1000005229B0001 /* ARCPurchasing in Frameworks */ = {isa = PBXBuildFile; productRef = A1000051229B0001 /* ARCPurchasing */; };
+		A1000006229B0001 /* ARCPurchasingUI in Frameworks */ = {isa = PBXBuildFile; productRef = A1000052229B0001 /* ARCPurchasingUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000005229B0001 /* ARCPurchasing in Frameworks */,
+				A1000006229B0001 /* ARCPurchasingUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +81,7 @@
 			name = ARCPurchasingDemoApp;
 			packageProductDependencies = (
 				A1000051229B0001 /* ARCPurchasing */,
+				A1000052229B0001 /* ARCPurchasingUI */,
 			);
 			productName = ARCPurchasingDemoApp;
 			productReference = A1000021229B0001 /* ARCPurchasingDemoApp.app */;
@@ -92,7 +95,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					A1000060229B0001 = {
 						CreatedOnToolsVersion = 16.0;
@@ -242,6 +245,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -264,6 +268,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -304,6 +309,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -319,6 +325,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_STRICT_CONCURRENCY = complete;
 			};
@@ -350,7 +357,7 @@
 /* Begin XCLocalSwiftPackageReference section */
 		A1000050229B0001 /* XCLocalSwiftPackageReference "../../" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../";
+			relativePath = ../../;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -358,6 +365,10 @@
 		A1000051229B0001 /* ARCPurchasing */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ARCPurchasing;
+		};
+		A1000052229B0001 /* ARCPurchasingUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ARCPurchasingUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -10,18 +10,24 @@ import Foundation
 
 /// Main entry point for ARCPurchasing.
 ///
-/// `ARCPurchaseManager` is the facade that coordinates all purchase operations,
-/// delegating to the configured provider while managing state for SwiftUI integration.
+/// `ARCPurchaseManager` is the facade that coordinates all purchase
+/// operations, delegating to the configured provider while managing
+/// state for SwiftUI integration. The manager is backend-agnostic —
+/// callers select an implementation by passing the appropriate
+/// ``PurchaseProviding`` instance to ``configure(with:provider:analytics:)``.
 ///
 /// ## Usage
 ///
 /// ```swift
-/// // Configure on app launch
+/// // Build a provider from any backend's factory.
+/// let provider = SomeProviderFactory.make(...)
+///
+/// // Configure with shared, backend-agnostic options.
 /// let config = PurchaseConfiguration(
-///     apiKey: "your_revenuecat_api_key",
-///     entitlementIdentifiers: ["premium"]
+///     entitlementIdentifiers: ["premium"],
+///     entitlementMapper: { _ in "premium" }
 /// )
-/// try await ARCPurchaseManager.shared.configure(with: config)
+/// try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
 ///
 /// // Check entitlements
 /// let hasPremium = await ARCPurchaseManager.shared.hasEntitlement("premium")
@@ -78,6 +84,7 @@ public final class ARCPurchaseManager {
     private var provider: (any PurchaseProviding)?
     private var analytics: (any PurchaseAnalytics)?
     private let logger: ARCLogger
+    private var stateObservationTask: Task<Void, Never>?
 
     // MARK: - Initialization
 
@@ -90,29 +97,32 @@ public final class ARCPurchaseManager {
 
     // MARK: - Configuration
 
-    /// Configure the purchase manager with RevenueCat.
+    /// Configure the purchase manager with an injected provider.
     ///
-    /// This must be called before any other operations, typically during app launch.
+    /// Call this once during app launch, before any other operation.
+    /// The provider is supplied by the consuming app from the factory
+    /// of its chosen backend module.
     ///
     /// - Parameters:
-    ///   - config: Purchase configuration with API key and settings.
+    ///   - config: Shared, backend-agnostic configuration.
+    ///   - provider: The ``PurchaseProviding`` implementation to use.
     ///   - analytics: Optional custom analytics handler.
     /// - Throws: ``PurchaseError`` if configuration fails.
-    public func configure(
-        with config: PurchaseConfiguration,
-        analytics: (any PurchaseAnalytics)? = nil
-    ) async throws {
+    public func configure(with config: PurchaseConfiguration,
+                          provider: any PurchaseProviding,
+                          analytics: (any PurchaseAnalytics)? = nil) async throws {
         logger.info("[Purchase] Configuring ARCPurchaseManager")
 
-        let provider = RevenueCatProvider(logger: logger)
         try await provider.configure(with: config)
 
         self.provider = provider
         self.analytics = analytics ?? DefaultPurchaseAnalytics(logger: logger)
         isConfigured = true
 
-        // Initial state sync
         await refreshState()
+
+        // Observe real-time subscription changes
+        startObservingPurchaseState(from: provider)
 
         logger.info("[Purchase] ARCPurchaseManager configured successfully")
     }
@@ -165,12 +175,10 @@ public final class ARCPurchaseManager {
 
         switch result {
         case let .success(transaction):
-            await analytics?.track(.purchaseCompleted(
-                productID: product.id,
-                price: transaction.price ?? product.price,
-                currency: transaction.currencyCode ?? product.currencyCode,
-                transactionID: transaction.id
-            ))
+            await analytics?.track(.purchaseCompleted(productID: product.id,
+                                                      price: transaction.price ?? product.price,
+                                                      currency: transaction.currencyCode ?? product.currencyCode,
+                                                      transactionID: transaction.id))
             await refreshState()
 
         case .cancelled:
@@ -182,11 +190,31 @@ public final class ARCPurchaseManager {
         case let .requiresAction(action):
             await analytics?.track(.purchaseFailed(productID: product.id, error: action))
 
+        case .restored:
+            // `purchase(_:)` never yields `.restored` — restores flow through
+            // `restorePurchases()`. Present only to keep the switch exhaustive.
+            break
+
         case .unknown:
             await analytics?.track(.purchaseFailed(productID: product.id, error: "Unknown error"))
         }
 
         return result
+    }
+
+    /// Sync purchases with the provider's backend.
+    ///
+    /// Use this after detecting purchases made outside the app (family sharing,
+    /// promo codes, web purchases) to ensure local state is up to date.
+    ///
+    /// - Throws: ``PurchaseError`` if synchronization fails.
+    public func syncPurchases() async throws {
+        guard let provider else {
+            throw PurchaseError.notConfigured
+        }
+
+        try await provider.syncPurchases()
+        await refreshState()
     }
 
     /// Restore previous purchases.
@@ -223,6 +251,15 @@ public final class ARCPurchaseManager {
         return await provider.hasEntitlement(identifier)
     }
 
+    /// Track a purchase analytics event.
+    ///
+    /// Use this to emit custom or UI-layer events through the configured analytics handler.
+    ///
+    /// - Parameter event: The ``PurchaseEvent`` to track.
+    public func track(_ event: PurchaseEvent) async {
+        await analytics?.track(event)
+    }
+
     /// Refresh entitlements and subscription status.
     ///
     /// Call this to manually refresh state, for example after
@@ -238,9 +275,9 @@ public final class ARCPurchaseManager {
 
     /// Identify the current user.
     ///
-    /// - Parameter userID: User identifier to associate with purchases.
+    /// - Parameter userID: User identifier to associate with purchases. Pass `nil` to revert to anonymous mode.
     /// - Throws: ``PurchaseError`` if identification fails.
-    public func identify(userID: String) async throws {
+    public func identify(userID: String?) async throws {
         guard let provider else {
             throw PurchaseError.notConfigured
         }
@@ -257,21 +294,38 @@ public final class ARCPurchaseManager {
             throw PurchaseError.notConfigured
         }
 
+        stateObservationTask?.cancel()
+        stateObservationTask = nil
+
         try await provider.logOut()
         await refreshState()
     }
 }
 
+// MARK: - Private Helpers
+
+private extension ARCPurchaseManager {
+    func startObservingPurchaseState(from provider: any PurchaseProviding) {
+        stateObservationTask?.cancel()
+        stateObservationTask = Task { [weak self] in
+            for await _ in provider.purchaseStateDidChange() {
+                guard !Task.isCancelled, let self else { break }
+                await refreshState()
+            }
+        }
+    }
+}
+
 // MARK: - Convenience Properties
 
-extension ARCPurchaseManager {
+public extension ARCPurchaseManager {
     /// Whether the user has any active subscription.
-    public var isSubscribed: Bool {
+    var isSubscribed: Bool {
         subscriptionStatus?.isSubscribed ?? false
     }
 
     /// Whether there are any active entitlements.
-    public var hasActiveEntitlements: Bool {
+    var hasActiveEntitlements: Bool {
         currentEntitlements.contains(where: \.isActive)
     }
 }

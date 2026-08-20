@@ -47,15 +47,13 @@ public struct SubscriptionStatus: Sendable, Equatable {
     ///   - isInBillingRetry: Whether in billing retry period.
     ///   - isInGracePeriod: Whether in grace period.
     ///   - managementURL: URL to manage subscription.
-    public init(
-        isSubscribed: Bool,
-        activeProductID: String? = nil,
-        expiresDate: Date? = nil,
-        willRenew: Bool = false,
-        isInBillingRetry: Bool = false,
-        isInGracePeriod: Bool = false,
-        managementURL: URL? = nil
-    ) {
+    public init(isSubscribed: Bool,
+                activeProductID: String? = nil,
+                expiresDate: Date? = nil,
+                willRenew: Bool = false,
+                isInBillingRetry: Bool = false,
+                isInGracePeriod: Bool = false,
+                managementURL: URL? = nil) {
         self.isSubscribed = isSubscribed
         self.activeProductID = activeProductID
         self.expiresDate = expiresDate
@@ -68,26 +66,26 @@ public struct SubscriptionStatus: Sendable, Equatable {
 
 // MARK: - Convenience Properties
 
-extension SubscriptionStatus {
+public extension SubscriptionStatus {
     /// Whether the subscription is active and in good standing.
-    public var isActiveAndHealthy: Bool {
+    var isActiveAndHealthy: Bool {
         isSubscribed && !isInBillingRetry && !isInGracePeriod
     }
 
     /// Whether the subscription has any billing issues.
-    public var hasBillingIssues: Bool {
+    var hasBillingIssues: Bool {
         isInBillingRetry || isInGracePeriod
     }
 
     /// Whether the subscription is about to expire (within 3 days).
-    public var isExpiringSoon: Bool {
+    var isExpiringSoon: Bool {
         guard let expiresDate, !willRenew else { return false }
         let threeDaysFromNow = Date().addingTimeInterval(3 * 24 * 60 * 60)
         return expiresDate < threeDaysFromNow
     }
 
     /// Number of days until expiration, or `nil` if no expiration date.
-    public var daysUntilExpiration: Int? {
+    var daysUntilExpiration: Int? {
         guard let expiresDate else { return nil }
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: Date(), to: expiresDate)

@@ -25,6 +25,8 @@ import Foundation
 ///     print("Awaiting approval")
 /// case .requiresAction(let action):
 ///     print("Action required: \(action)")
+/// case .restored:
+///     print("Entitlements restored")
 /// case .unknown:
 ///     print("Unknown result")
 /// }
@@ -42,34 +44,58 @@ public enum PurchaseResult: Sendable, Equatable {
     /// Purchase requires user action (e.g., payment method update).
     case requiresAction(String)
 
+    /// All previously-purchased entitlements were restored.
+    ///
+    /// Carries no transaction — the restore path refreshes entitlements in bulk
+    /// rather than surfacing an individual purchase.
+    case restored
+
     /// Unknown result.
     case unknown
 }
 
 // MARK: - Convenience Properties
 
-extension PurchaseResult {
+public extension PurchaseResult {
     /// Whether the purchase was successful.
-    public var isSuccess: Bool {
-        if case .success = self { return true }
+    var isSuccess: Bool {
+        if case .success = self {
+            return true
+        }
         return false
     }
 
     /// The transaction if purchase was successful, `nil` otherwise.
-    public var transaction: PurchaseTransaction? {
-        if case let .success(transaction) = self { return transaction }
+    var transaction: PurchaseTransaction? {
+        if case let .success(transaction) = self {
+            return transaction
+        }
         return nil
     }
 
     /// Whether the user cancelled the purchase.
-    public var isCancelled: Bool {
-        if case .cancelled = self { return true }
+    var isCancelled: Bool {
+        if case .cancelled = self {
+            return true
+        }
         return false
     }
 
     /// Whether the purchase is pending approval.
-    public var isPending: Bool {
-        if case .pending = self { return true }
+    var isPending: Bool {
+        if case .pending = self {
+            return true
+        }
         return false
+    }
+
+    /// Whether this result came from restoring previous purchases.
+    var isRestored: Bool {
+        self == .restored
+    }
+
+    /// Whether the paywall goal was met — a fresh successful purchase or a restore.
+    var isCompleted: Bool {
+        isSuccess || isRestored
     }
 }

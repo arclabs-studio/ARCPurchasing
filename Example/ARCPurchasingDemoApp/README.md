@@ -1,8 +1,8 @@
 # ARCPurchasingDemoApp
 
-Demo application for **ARCPurchasing** package.
+Demo application for **ARCPurchasing**.
 
-This app demonstrates the full integration of ARCPurchasing, including product fetching, purchasing, entitlement checking, and subscription status management.
+Configured for the native **StoreKit 2** provider — no API key, no third-party SDK. Runs entirely against a bundled `.storekit` configuration so you can purchase, restore, and inspect entitlements straight from the simulator.
 
 ---
 
@@ -10,44 +10,59 @@ This app demonstrates the full integration of ARCPurchasing, including product f
 
 - **Xcode**: 16.0+
 - **iOS**: 17.0+
-- **RevenueCat Account**: You'll need a RevenueCat API key
+
+No RevenueCat account required.
 
 ---
 
 ## Running the Example
 
-1. Open `ARCPurchasingDemoApp.xcodeproj` in Xcode
-2. The ARCPurchasing package is already linked from the parent directory
-3. Configure your RevenueCat API key (see below)
-4. Select a simulator and press **Run** (⌘R)
+1. Open `ARCPurchasingDemoApp.xcodeproj` in Xcode.
+2. The ARCPurchasing package is already linked from the parent directory (`ARCPurchasing` + `ARCPurchasingUI` products).
+3. Attach the bundled `.storekit` configuration (see [StoreKit Setup](#storekit-setup) below).
+4. Select a simulator and press **Run** (⌘R).
 
 ---
 
-## Configuration
+## StoreKit Setup
 
-### 1. RevenueCat API Key
+The demo ships a `Products.storekit` file with three test products that match the IDs configured in the app:
 
-Open `ARCPurchasingDemoApp/ARCPurchasingDemoAppApp.swift` and replace the API key:
+| Product ID | Type | Price |
+|------------|------|-------|
+| `com.app.premium.monthly` | Auto-renewable subscription | $4.99/month |
+| `com.app.premium.yearly` | Auto-renewable subscription | $39.99/year |
+| `com.app.premium.lifetime` | Non-consumable | $99.99 |
 
-```swift
-let config = PurchaseConfiguration(
-    apiKey: "your_revenuecat_api_key_here",  // Replace this
-    debugLoggingEnabled: true,
-    storeKitVersion: .storeKit2,
-    entitlementIdentifiers: ["premium", "pro"]
-)
-```
+To activate it for local runs:
 
-### 2. Product IDs
+1. **Product → Scheme → Edit Scheme…** (⌘<)
+2. Select **Run** in the left sidebar.
+3. Open the **Options** tab.
+4. Set **StoreKit Configuration** to `Products.storekit`.
+5. Close the sheet and run the app.
 
-Open `ARCPurchasingDemoApp/PaywallView.swift` and update the product IDs to match your App Store Connect configuration:
+Once attached, purchases complete instantly without sandbox credentials. Use **Debug → StoreKit → Manage Transactions** to inspect, expire, or refund transactions while running.
 
-```swift
-private let productIDs: Set<String> = [
-    "com.yourcompany.yourapp.premium.monthly",
-    "com.yourcompany.yourapp.premium.yearly"
-]
-```
+---
+
+## Switching to RevenueCat
+
+The demo defaults to StoreKit 2. To run against RevenueCat instead:
+
+1. Link the `ARCPurchasingRevenueCat` product in the app target (File → Add Package Dependencies → ARCPurchasing → ARCPurchasingRevenueCat).
+2. Replace the `configurePurchasing()` body in `ARCPurchasingDemoAppApp.swift`:
+   ```swift
+   import ARCPurchasingRevenueCat
+
+   let config = PurchaseConfiguration(
+       apiKey: "your_revenuecat_api_key_here",
+       debugLoggingEnabled: true,
+       entitlementIdentifiers: ["premium"]
+   )
+   try await ARCPurchaseManager.shared.configure(with: config)
+   ```
+3. Configure your products in the RevenueCat dashboard with matching identifiers.
 
 ---
 
@@ -55,55 +70,38 @@ private let productIDs: Set<String> = [
 
 ### ContentView
 
-- **Subscription Status**: Shows if the user is configured and subscribed
-- **Active Entitlements**: Lists all active entitlements with details (period type, renewal status)
-- **Restore Purchases**: Restores previous purchases from the App Store
-- **Refresh State**: Manually refreshes entitlement state from RevenueCat
+- **Subscription Status**: Configured + subscribed flags, active product ID, expiration, auto-renewal
+- **Active Entitlements**: List of active entitlements with period type and renewal state
+- **Restore Purchases**: Triggers `AppStore.sync()` via the manager
+- **Refresh State**: Manually re-queries entitlements
 
-### PaywallView
+### PaywallView (DemoPaywallScreen)
 
-- **Product Fetching**: Loads products from RevenueCat with loading states
-- **Product Display**: Shows product name, description, price, and subscription period
-- **Purchase Flow**: Handles the complete purchase flow with feedback
-- **Error Handling**: Displays errors and allows retry
-- **Restore Purchases**: Quick access to restore from paywall
+- `ARCPaywallView` with two theme presets (Dark Burgundy, Light Gold)
+- Loading states, error handling, and restore button built into the paywall
+- Uses `previewProducts` for instant visual rendering — switch to live products by removing that parameter
 
 ---
 
 ## Architecture
 
-The demo follows ARC Labs standards:
-
 ```
 ARCPurchasingDemoApp/
-├── ARCPurchasingDemoApp.xcodeproj   # Xcode project
+├── ARCPurchasingDemoApp.xcodeproj
 ├── ARCPurchasingDemoApp/
-│   ├── ARCPurchasingDemoAppApp.swift   # App entry point, configuration
-│   ├── ContentView.swift                # Main view, status display
-│   ├── PaywallView.swift                # Paywall, purchase flow
-│   └── Assets.xcassets                  # App icons and colors
+│   ├── ARCPurchasingDemoAppApp.swift   # App entry, StoreKit 2 configuration
+│   ├── ContentView.swift                # Status + entitlement display
+│   ├── PaywallView.swift                # ARCPaywallView demo with theme picker
+│   ├── Products.storekit                # Bundled test products
+│   └── Assets.xcassets
 └── README.md
 ```
 
 ### Key Patterns
 
-- **@State with ARCPurchaseManager.shared**: Direct observation of the singleton
-- **@Observable**: ARCPurchaseManager uses @Observable for automatic SwiftUI updates
-- **async/await**: All purchase operations use Swift concurrency
-- **Error handling**: Comprehensive error display with retry options
-
----
-
-## Testing with StoreKit Configuration
-
-For testing purchases without a real RevenueCat account:
-
-1. In Xcode, go to **File → New → File**
-2. Select **StoreKit Configuration File**
-3. Add test products matching your `productIDs`
-4. In your scheme (**Product → Scheme → Edit Scheme**), select the StoreKit Configuration under **Run → Options**
-
-Note: Some RevenueCat-specific features won't work in StoreKit testing mode.
+- **@State with ARCPurchaseManager.shared** — observe the `@Observable` singleton directly
+- **async/await** — all purchase operations use Swift concurrency
+- **Provider injection** — configure() takes an explicit `PurchaseProviding` factory output, making the active backend visible at the call site
 
 ---
 
@@ -111,28 +109,25 @@ Note: Some RevenueCat-specific features won't work in StoreKit testing mode.
 
 ### "No products found"
 
-- Verify your RevenueCat API key is correct
-- Check that products are configured in RevenueCat Dashboard
-- Ensure product IDs match exactly (case-sensitive)
-- Check RevenueCat dashboard for any configuration issues
+- Confirm the `.storekit` file is set in the scheme's Run → Options
+- Verify product IDs match those passed to `PurchaseConfiguration(productIDs:)`
+- If using sandbox, ensure you are signed into a sandbox account on the device
 
 ### "Provider not configured"
 
-- Ensure `configure()` completes before any purchase operations
-- Check console for configuration errors
-- Verify the API key is valid in RevenueCat dashboard
+- `configure()` runs in a `.task` modifier — give it a beat before invoking purchase actions
+- Check Xcode console for the configuration error message
 
 ### Build errors with package
 
 - Clean build folder: **Product → Clean Build Folder** (⇧⌘K)
 - Reset package caches: **File → Packages → Reset Package Caches**
-- Ensure Xcode 16.0+ is being used
 
 ---
 
 ## License
 
-MIT License - See [LICENSE](../../LICENSE) for details.
+PolyForm Noncommercial 1.0.0 — see [LICENSE](../../LICENSE).
 
 ---
 

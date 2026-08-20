@@ -26,12 +26,10 @@ public enum PurchaseEvent: Sendable {
     case purchaseStarted(productID: String)
 
     /// A purchase completed successfully.
-    case purchaseCompleted(
-        productID: String,
-        price: Decimal,
-        currency: String,
-        transactionID: String
-    )
+    case purchaseCompleted(productID: String,
+                           price: Decimal,
+                           currency: String,
+                           transactionID: String)
 
     /// A purchase was cancelled by the user.
     case purchaseCancelled(productID: String)
@@ -63,13 +61,24 @@ public enum PurchaseEvent: Sendable {
 
     /// Restore purchases failed.
     case restorePurchasesFailed(error: String)
+
+    // MARK: - UI Events
+
+    /// A paywall was dismissed.
+    case paywallDismissed(paywallID: String?)
+
+    /// The Customer Center was opened.
+    case customerCenterOpened
+
+    /// The Customer Center was dismissed.
+    case customerCenterDismissed
 }
 
 // MARK: - Event Metadata
 
-extension PurchaseEvent {
+public extension PurchaseEvent {
     /// Event name for analytics tracking.
-    public var name: String {
+    var name: String {
         switch self {
         case .productViewed: "product_viewed"
         case .paywallViewed: "paywall_viewed"
@@ -84,11 +93,14 @@ extension PurchaseEvent {
         case .restorePurchasesStarted: "restore_purchases_started"
         case .restorePurchasesCompleted: "restore_purchases_completed"
         case .restorePurchasesFailed: "restore_purchases_failed"
+        case .paywallDismissed: "paywall_dismissed"
+        case .customerCenterOpened: "customer_center_opened"
+        case .customerCenterDismissed: "customer_center_dismissed"
         }
     }
 
     /// Product ID associated with the event, if any.
-    public var productID: String? {
+    var productID: String? {
         switch self {
         case let .productViewed(productID),
              let .purchaseStarted(productID),
@@ -100,7 +112,9 @@ extension PurchaseEvent {
              let .subscriptionCancelled(productID),
              let .subscriptionExpired(productID):
             productID
-        case .paywallViewed, .restorePurchasesStarted, .restorePurchasesCompleted, .restorePurchasesFailed:
+        case .paywallViewed, .paywallDismissed,
+             .restorePurchasesStarted, .restorePurchasesCompleted, .restorePurchasesFailed,
+             .customerCenterOpened, .customerCenterDismissed:
             nil
         }
     }
