@@ -30,13 +30,16 @@ private struct FeatureRowView: View {
     let feature: PaywallConfiguration.Feature
     let theme: PaywallTheme
 
+    /// Keeps the row's icon proportional to its text at larger content sizes.
+    @ScaledMetric(relativeTo: .headline) private var iconSize: CGFloat = 24
+
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             // Icon
             Image(systemName: feature.iconName)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.headline)
                 .foregroundStyle(theme.accentColor)
-                .frame(width: 24, height: 24)
+                .frame(width: iconSize, height: iconSize)
                 .padding(6)
                 .background(theme.accentColor.opacity(0.15))
                 .clipShape(Circle())
@@ -91,4 +94,17 @@ private struct FeatureRowView: View {
                            theme: .lightGold)
         .padding(.vertical)
         .background(PaywallTheme.lightGold.backgroundColor)
+}
+
+#Preview("Dark — AX5") {
+    ScrollView {
+        PaywallFeatureListView(features: [.init(highlightedText: "Year in Food",
+                                                description: "— full annual stats & insights"),
+                                          .init(highlightedText: "AI recommendations",
+                                                description: "tailored to your taste")],
+                               theme: .darkBurgundy)
+            .padding(.vertical)
+    }
+    .background(PaywallTheme.darkBurgundy.backgroundColor)
+    .environment(\.dynamicTypeSize, .accessibility5)
 }

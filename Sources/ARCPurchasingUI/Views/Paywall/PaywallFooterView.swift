@@ -15,11 +15,17 @@ struct PaywallFooterView: View {
     let renewalDisclosure: String?
     let termsOfServiceURL: URL
     let privacyPolicyURL: URL
+    let layoutMode: PaywallLayoutMode
     let theme: PaywallTheme
     let onRestore: () -> Void
     let isRestoring: Bool
 
     var body: some View {
+        // The interpuncts have no room left at accessibility sizes — the links stack instead
+        let layout = layoutMode == .scrolling
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 0))
+
         VStack(spacing: 6) {
             // Renewal disclosure
             if let renewalDisclosure {
@@ -27,17 +33,23 @@ struct PaywallFooterView: View {
                     .font(.caption2)
                     .foregroundStyle(theme.secondaryTextColor)
                     .multilineTextAlignment(.center)
+                    .wrappingText()
             }
 
-            // Links row: Restore · Terms · Privacy
-            HStack(spacing: 0) {
+            // Links: Restore · Terms · Privacy
+            layout {
                 restoreButton
-                separator
+                if layoutMode == .pinned {
+                    separator
+                }
                 termsLink
-                separator
+                if layoutMode == .pinned {
+                    separator
+                }
                 privacyLink
             }
             .font(.caption2)
+            .multilineTextAlignment(.center)
             .foregroundStyle(theme.secondaryTextColor)
         }
         .padding(.horizontal, 24)
@@ -57,6 +69,7 @@ struct PaywallFooterView: View {
             } else {
                 Text("Restore")
                     .underline()
+                    .wrappingText()
             }
         }
         .disabled(isRestoring)
@@ -71,12 +84,14 @@ struct PaywallFooterView: View {
     private var termsLink: some View {
         Link("Terms", destination: termsOfServiceURL)
             .underline()
+            .wrappingText()
             .foregroundStyle(theme.secondaryTextColor)
     }
 
     private var privacyLink: some View {
         Link("Privacy", destination: privacyPolicyURL)
             .underline()
+            .wrappingText()
             .foregroundStyle(theme.secondaryTextColor)
     }
 }
@@ -90,6 +105,7 @@ private let _previewPrivacy = URL(string: "https://example.com/privacy") ?? URL(
     PaywallFooterView(renewalDisclosure: "Renews automatically. Cancel anytime.",
                       termsOfServiceURL: _previewTOS,
                       privacyPolicyURL: _previewPrivacy,
+                      layoutMode: .pinned,
                       theme: .darkBurgundy,
                       onRestore: {},
                       isRestoring: false)
@@ -101,9 +117,23 @@ private let _previewPrivacy = URL(string: "https://example.com/privacy") ?? URL(
     PaywallFooterView(renewalDisclosure: "Renews automatically. Cancel anytime.",
                       termsOfServiceURL: _previewTOS,
                       privacyPolicyURL: _previewPrivacy,
+                      layoutMode: .pinned,
                       theme: .lightGold,
                       onRestore: {},
                       isRestoring: false)
         .padding(.vertical)
         .background(PaywallTheme.lightGold.backgroundColor)
+}
+
+#Preview("Dark — AX5") {
+    PaywallFooterView(renewalDisclosure: "Renews automatically. Cancel anytime.",
+                      termsOfServiceURL: _previewTOS,
+                      privacyPolicyURL: _previewPrivacy,
+                      layoutMode: .scrolling,
+                      theme: .darkBurgundy,
+                      onRestore: {},
+                      isRestoring: false)
+        .padding(.vertical)
+        .background(PaywallTheme.darkBurgundy.backgroundColor)
+        .environment(\.dynamicTypeSize, .accessibility5)
 }
