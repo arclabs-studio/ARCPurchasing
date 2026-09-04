@@ -68,13 +68,28 @@ private struct SubscriptionCard: View {
                                   lineWidth: isSelected ? 2 : 1))
         }
         .buttonStyle(.plain)
+        // The visible content already reads price + period + savings; VoiceOver gets the same
+        // in one stop instead of two, plus the selection state the border alone can't convey
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .overlay(alignment: .top) {
-            // The floating badge only fits the card at standard sizes; larger text renders it inline
+            // The floating badge only fits the card at standard sizes; larger text renders it inline.
+            // Hidden from VoiceOver — its text is folded into accessibilityLabel above, since as a
+            // sibling overlay it isn't part of the button's accessibility element.
             if layoutMode == .pinned, let badge {
                 badgeView(badge)
                     .offset(y: -12)
+                    .accessibilityHidden(true)
             }
         }
+    }
+
+    private var accessibilityLabel: String {
+        var components = [periodLabel.capitalized, product.displayPrice, bottomLabel]
+        if let badge {
+            components.append(badge)
+        }
+        return components.filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
     private var cardContent: some View {

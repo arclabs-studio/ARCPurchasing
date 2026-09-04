@@ -74,11 +74,14 @@ struct PaywallFooterView: View {
         }
         .disabled(isRestoring)
         .foregroundStyle(theme.secondaryTextColor)
+        .accessibilityLabel(isRestoring ? "Restoring purchases" : "Restore purchases")
     }
 
     private var separator: some View {
         Text(" · ")
             .foregroundStyle(theme.secondaryTextColor)
+            // Decorative divider between links, not a piece of content
+            .accessibilityHidden(true)
     }
 
     private var termsLink: some View {

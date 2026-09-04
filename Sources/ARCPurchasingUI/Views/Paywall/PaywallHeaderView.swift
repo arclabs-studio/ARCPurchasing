@@ -19,9 +19,10 @@ struct PaywallHeaderView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // Icon badge
+            // Icon badge — decorative, the title/header label already conveys the same content
             if configuration.iconAssetName != nil || configuration.iconName != nil {
                 iconBadge
+                    .accessibilityHidden(true)
             }
 
             // Title

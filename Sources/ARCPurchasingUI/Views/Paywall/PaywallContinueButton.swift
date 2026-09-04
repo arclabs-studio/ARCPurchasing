@@ -44,6 +44,8 @@ struct PaywallContinueButton: View {
             .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
         }
         .disabled(isDisabled || isLoading)
+        // The title Text disappears while loading, leaving the button unlabelled otherwise
+        .accessibilityLabel(isLoading ? "Processing purchase" : title)
         .padding(.horizontal, 24)
     }
 }

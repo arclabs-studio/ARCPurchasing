@@ -64,6 +64,8 @@ struct PaywallLifetimeCardView: View {
                                                  dash: isSelected ? [] : [6, 4])))
         }
         .buttonStyle(.plain)
+        // The border alone doesn't convey selection to VoiceOver
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .padding(.horizontal, 24)
     }
 }

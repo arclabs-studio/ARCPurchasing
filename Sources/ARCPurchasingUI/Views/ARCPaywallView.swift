@@ -135,6 +135,7 @@ public struct ARCPaywallView: View {
         ProgressView()
             .tint(theme.accentColor)
             .scaleEffect(1.5)
+            .accessibilityLabel("Loading products")
     }
 
     private func errorView(_ message: String) -> some View {
@@ -200,6 +201,7 @@ public struct ARCPaywallView: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
+        .accessibilityLabel("Close")
         .padding(.top, 20)
         .padding(.trailing, 16)
     }
