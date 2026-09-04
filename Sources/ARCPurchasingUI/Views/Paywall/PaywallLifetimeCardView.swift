@@ -16,33 +16,44 @@ struct PaywallLifetimeCardView: View {
     let product: PurchaseProduct
     let subtitle: String?
     let isSelected: Bool
+    let layoutMode: PaywallLayoutMode
     let theme: PaywallTheme
     let onTap: () -> Void
 
     var body: some View {
+        // AnyLayout keeps the card's identity across the swap; the price moves below the
+        // label at accessibility sizes, where a side-by-side row could only truncate
+        let layout = layoutMode == .scrolling
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(spacing: 12))
+
         Button(action: onTap) {
-            HStack(spacing: 12) {
-                // Left: label + subtitle
+            layout {
+                // Label + subtitle. Growing to the full width replaces the Spacer a
+                // vertical layout could not use.
                 VStack(alignment: .leading, spacing: 2) {
                     Text("LIFETIME ACCESS")
                         .font(.footnote.weight(.bold))
                         .tracking(0.5)
                         .foregroundStyle(theme.primaryTextColor)
+                        .wrappingText()
 
                     if let subtitle {
                         Text(subtitle)
                             .font(.caption)
                             .foregroundStyle(theme.secondaryTextColor)
+                            .wrappingText()
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                Spacer()
-
-                // Right: price
+                // Price — never truncated, at any content size
                 Text(product.displayPrice)
                     .font(.title3.bold())
                     .foregroundStyle(theme.primaryTextColor)
+                    .wrappingText()
             }
+            .multilineTextAlignment(.leading)
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
             .background(theme.cardBackgroundColor)
@@ -53,6 +64,8 @@ struct PaywallLifetimeCardView: View {
                                                  dash: isSelected ? [] : [6, 4])))
         }
         .buttonStyle(.plain)
+        // The border alone doesn't convey selection to VoiceOver
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .padding(.horizontal, 24)
     }
 }
@@ -67,11 +80,13 @@ struct PaywallLifetimeCardView: View {
         PaywallLifetimeCardView(product: lifetime,
                                 subtitle: "One-time purchase · Limited offer",
                                 isSelected: false,
+                                layoutMode: .pinned,
                                 theme: .darkBurgundy,
                                 onTap: {})
         PaywallLifetimeCardView(product: lifetime,
                                 subtitle: "One-time purchase · Limited offer",
                                 isSelected: true,
+                                layoutMode: .pinned,
                                 theme: .darkBurgundy,
                                 onTap: {})
     }
@@ -86,8 +101,26 @@ struct PaywallLifetimeCardView: View {
     return PaywallLifetimeCardView(product: lifetime,
                                    subtitle: "One-time purchase · Limited offer",
                                    isSelected: false,
+                                   layoutMode: .pinned,
                                    theme: .lightGold,
                                    onTap: {})
         .padding(.vertical)
         .background(PaywallTheme.lightGold.backgroundColor)
+}
+
+#Preview("Dark — AX5") {
+    let lifetime = PurchaseProduct(id: "lifetime", displayName: "Lifetime Access", description: "",
+                                   price: 89.99, displayPrice: "$89.99", currencyCode: "USD",
+                                   type: .nonConsumable)
+    return ScrollView {
+        PaywallLifetimeCardView(product: lifetime,
+                                subtitle: "One-time purchase · Limited offer",
+                                isSelected: true,
+                                layoutMode: .scrolling,
+                                theme: .darkBurgundy,
+                                onTap: {})
+            .padding(.vertical)
+    }
+    .background(PaywallTheme.darkBurgundy.backgroundColor)
+    .environment(\.dynamicTypeSize, .accessibility5)
 }

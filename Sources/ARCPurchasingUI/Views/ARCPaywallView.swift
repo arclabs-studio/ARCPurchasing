@@ -52,6 +52,8 @@ public struct ARCPaywallView: View {
 
     @State private var purchaseManager = ARCPurchaseManager.shared
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     // Products
     @State private var subscriptionProducts: [PurchaseProduct] = []
     @State private var lifetimeProduct: PurchaseProduct?
@@ -133,6 +135,7 @@ public struct ARCPaywallView: View {
         ProgressView()
             .tint(theme.accentColor)
             .scaleEffect(1.5)
+            .accessibilityLabel("Loading products")
     }
 
     private func errorView(_ message: String) -> some View {
@@ -153,62 +156,33 @@ public struct ARCPaywallView: View {
 
     // MARK: - Paywall Content
 
-    private var paywallContent: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 16) {
-                    PaywallHeaderView(configuration: configuration,
-                                      theme: theme)
-
-                    if !configuration.features.isEmpty {
-                        PaywallFeatureListView(features: configuration.features,
-                                               theme: theme)
-                    }
-                }
-                .padding(.bottom, 12)
-            }
-            .scrollBounceBehavior(.basedOnSize)
-
-            // Pinned bottom: products + CTA + footer always visible
-            VStack(spacing: 0) {
-                // Products pinned above CTA — keeps selection spatially adjacent to action
-                VStack(spacing: 10) {
-                    if !subscriptionProducts.isEmpty {
-                        PaywallSubscriptionCardsView(products: subscriptionProducts,
-                                                     selectedProductID: selectedProductID,
-                                                     highlightedProductID: configuration.highlightedProductID,
-                                                     badges: computedBadges,
-                                                     theme: theme,
-                                                     onSelect: { selectedProductID = $0.id })
-                    }
-
-                    if let lifetime = lifetimeProduct {
-                        PaywallLifetimeCardView(product: lifetime,
-                                                subtitle: configuration.lifetimeSubtitle,
-                                                isSelected: selectedProductID == lifetime.id,
-                                                theme: theme,
-                                                onTap: { selectedProductID = lifetime.id })
-                    }
-                }
-                .padding(.vertical, 16)
-
-                PaywallContinueButton(title: configuration.ctaButtonTitle,
-                                      isLoading: purchaseManager.isPurchasing,
-                                      isDisabled: selectedProductID == nil,
-                                      theme: theme,
-                                      action: { Task { await purchase() } })
-
-                PaywallFooterView(renewalDisclosure: configuration.renewalDisclosure,
-                                  termsOfServiceURL: configuration.termsOfServiceURL,
-                                  privacyPolicyURL: configuration.privacyPolicyURL,
-                                  theme: theme,
-                                  onRestore: { Task { await restore() } },
-                                  isRestoring: purchaseManager.isRestoring)
-            }
-            .padding(.top, 8)
-            .background(theme.backgroundColor)
-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
-            .shadow(color: .black.opacity(0.18), radius: 16, x: 0, y: -4)
+    @ViewBuilder private var paywallContent: some View {
+        // Accessibility content sizes dissolve the pinned bottom block into one scrolling column
+        switch PaywallLayoutMode(dynamicTypeSize: dynamicTypeSize) {
+        case .pinned:
+            PaywallPinnedLayout(configuration: configuration,
+                                theme: theme,
+                                subscriptionProducts: subscriptionProducts,
+                                lifetimeProduct: lifetimeProduct,
+                                selectedProductID: selectedProductID,
+                                badges: computedBadges,
+                                isPurchasing: purchaseManager.isPurchasing,
+                                isRestoring: purchaseManager.isRestoring,
+                                onSelect: { selectedProductID = $0 },
+                                onPurchase: { Task { await purchase() } },
+                                onRestore: { Task { await restore() } })
+        case .scrolling:
+            PaywallScrollingLayout(configuration: configuration,
+                                   theme: theme,
+                                   subscriptionProducts: subscriptionProducts,
+                                   lifetimeProduct: lifetimeProduct,
+                                   selectedProductID: selectedProductID,
+                                   badges: computedBadges,
+                                   isPurchasing: purchaseManager.isPurchasing,
+                                   isRestoring: purchaseManager.isRestoring,
+                                   onSelect: { selectedProductID = $0 },
+                                   onPurchase: { Task { await purchase() } },
+                                   onRestore: { Task { await restore() } })
         }
     }
 
@@ -227,6 +201,7 @@ public struct ARCPaywallView: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
+        .accessibilityLabel("Close")
         .padding(.top, 20)
         .padding(.trailing, 16)
     }
@@ -484,4 +459,18 @@ private let _previewConfigNoLifetime = PaywallConfiguration(headerLabel: "FORKS 
     ARCPaywallView(configuration: _previewConfigNoLifetime,
                    theme: .darkBurgundy,
                    previewProducts: Array(ARCPaywallView.previewMockProducts.prefix(2)))
+}
+
+#Preview("Dark — AX5") {
+    ARCPaywallView(configuration: _previewConfig,
+                   theme: .darkBurgundy,
+                   previewProducts: ARCPaywallView.previewMockProducts)
+        .environment(\.dynamicTypeSize, .accessibility5)
+}
+
+#Preview("Light — AX5") {
+    ARCPaywallView(configuration: _previewConfig,
+                   theme: .lightGold,
+                   previewProducts: ARCPaywallView.previewMockProducts)
+        .environment(\.dynamicTypeSize, .accessibility5)
 }
