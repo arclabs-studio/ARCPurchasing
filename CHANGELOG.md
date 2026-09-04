@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-09-04
+
+### Fixed
+
+- **`ARCPaywallView` was unusable at accessibility Dynamic Type sizes.** The pinned bottom block (product cards, CTA, footer) did not scroll and had no height bound, so it swelled to nearly the full screen and collapsed the scroll view above it to a sliver — the benefit bullets became unreachable and every label truncated, prices included. The paywall now picks its layout from the environment's Dynamic Type size: standard sizes keep the existing pinned design unchanged, accessibility sizes put header, features, products, CTA and footer in a single scrolling column with the product cards stacked vertically. Prices, period labels, the CTA title and the footer links wrap instead of truncating, the savings badge renders inside its card, and the CTA's fixed 56pt height, the header badge and the feature icons now scale with the content size.
+- **Paywall controls were unlabelled for VoiceOver.** The dismiss button was announced as its SF Symbol name, the CTA and Restore button lost their labels whenever they collapsed to a progress indicator, the savings badge was never announced, and no cue told the user which product card was selected. All are now labelled, selection is exposed with the `.isSelected` trait, and the decorative header badge and footer separators are hidden.
+
+---
+
 ## [1.0.0] - 2026-08-20
 
 First public release of **ARCPurchasing**.
