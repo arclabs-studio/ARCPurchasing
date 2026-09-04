@@ -18,7 +18,7 @@ struct PaywallScrollingLayout: View {
     let subscriptionProducts: [PurchaseProduct]
     let lifetimeProduct: PurchaseProduct?
     let selectedProductID: String?
-    let badges: [String: String]
+    let badges: [String: PaywallBadge]
     let isPurchasing: Bool
     let isRestoring: Bool
     let onSelect: (String) -> Void

@@ -74,7 +74,8 @@ struct PaywallFooterView: View {
         }
         .disabled(isRestoring)
         .foregroundStyle(theme.secondaryTextColor)
-        .accessibilityLabel(isRestoring ? "Restoring purchases" : "Restore purchases")
+        // Explicit Text values so both branches take the localizing initializer
+        .accessibilityLabel(isRestoring ? Text("Restoring purchases") : Text("Restore purchases"))
     }
 
     private var separator: some View {

@@ -18,7 +18,7 @@ struct PaywallProductsSection: View {
     let selectedProductID: String?
     let highlightedProductID: String?
     let lifetimeSubtitle: String?
-    let badges: [String: String]
+    let badges: [String: PaywallBadge]
     let layoutMode: PaywallLayoutMode
     let theme: PaywallTheme
     let onSelect: (String) -> Void
@@ -55,7 +55,7 @@ struct PaywallProductsSection: View {
                            selectedProductID: "com.app.premium.yearly",
                            highlightedProductID: "com.app.premium.yearly",
                            lifetimeSubtitle: "One-time purchase · Limited offer",
-                           badges: ["com.app.premium.yearly": "SAVE 42%"],
+                           badges: ["com.app.premium.yearly": .savings(42)],
                            layoutMode: .pinned,
                            theme: .darkBurgundy,
                            onSelect: { _ in })
@@ -70,7 +70,7 @@ struct PaywallProductsSection: View {
                                selectedProductID: "com.app.premium.yearly",
                                highlightedProductID: "com.app.premium.yearly",
                                lifetimeSubtitle: "One-time purchase · Limited offer",
-                               badges: ["com.app.premium.yearly": "SAVE 42%"],
+                               badges: ["com.app.premium.yearly": .savings(42)],
                                layoutMode: .scrolling,
                                theme: .darkBurgundy,
                                onSelect: { _ in })

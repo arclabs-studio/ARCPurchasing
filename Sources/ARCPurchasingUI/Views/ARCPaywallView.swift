@@ -234,7 +234,7 @@ private extension ARCPaywallView {
             }
 
             guard !targetProducts.isEmpty else {
-                loadingState = .error("No products available. Please try again later.")
+                loadingState = .error(String(localized: "No products available. Please try again later."))
                 return
             }
 
@@ -288,7 +288,7 @@ private extension ARCPaywallView {
             case .restored:
                 onPurchaseCompleted?(.restored)
             case .unknown:
-                purchaseError = "An unknown error occurred. Please try again."
+                purchaseError = String(localized: "An unknown error occurred. Please try again.")
                 onPurchaseCompleted?(.unknown)
             }
         } catch {
@@ -310,14 +310,16 @@ private extension ARCPaywallView {
     // MARK: Badge Calculation
 
     /// Merges auto-calculated savings badges with `badgeOverrides`.
-    /// Manual overrides always take precedence.
-    var computedBadges: [String: String] {
+    /// Manual overrides always take precedence, and stay verbatim — they are the app's
+    /// own copy, already localized by the app.
+    var computedBadges: [String: PaywallBadge] {
+        let overrides = configuration.badgeOverrides.mapValues(PaywallBadge.custom)
         guard configuration.autoCalculateSavings else {
-            return configuration.badgeOverrides
+            return overrides
         }
 
         var badges = savingsBadges(for: subscriptionProducts)
-        for (id, badge) in configuration.badgeOverrides {
+        for (id, badge) in overrides {
             badges[id] = badge
         }
         return badges
@@ -325,7 +327,7 @@ private extension ARCPaywallView {
 
     /// Calculates "SAVE X%" badges for subscriptions with >1-month periods,
     /// using the monthly product as the baseline.
-    func savingsBadges(for products: [PurchaseProduct]) -> [String: String] {
+    func savingsBadges(for products: [PurchaseProduct]) -> [String: PaywallBadge] {
         guard products.count > 1 else { return [:] }
 
         // Find the monthly baseline product
@@ -334,7 +336,7 @@ private extension ARCPaywallView {
         }
         guard let monthlyPrice = monthly?.price, monthlyPrice > 0 else { return [:] }
 
-        var badges: [String: String] = [:]
+        var badges: [String: PaywallBadge] = [:]
         for product in products {
             guard product.id != monthly?.id,
                   let period = product.subscriptionPeriod else { continue }
@@ -345,7 +347,7 @@ private extension ARCPaywallView {
             let savings = (1 - monthlyEquivalent / monthlyPrice) * 100
             let savingsInt = Int((savings as NSDecimalNumber).doubleValue.rounded())
             if savingsInt > 0 {
-                badges[product.id] = "SAVE \(savingsInt)%"
+                badges[product.id] = .savings(savingsInt)
             }
         }
         return badges
