@@ -20,7 +20,7 @@ enum PaywallPreviewSample {
 
     static let lifetime: PurchaseProduct? = products.last
 
-    static let badges: [String: String] = ["com.app.premium.yearly": "SAVE 42%"]
+    static let badges: [String: PaywallBadge] = ["com.app.premium.yearly": .savings(42)]
 
     static let selectedProductID = "com.app.premium.yearly"
 

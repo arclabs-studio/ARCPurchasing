@@ -29,7 +29,8 @@ struct PaywallContinueButton: View {
                     ProgressView()
                         .tint(theme.ctaTextColor)
                 } else {
-                    Text(title)
+                    // App-supplied copy — already localized by the app, never a key
+                    Text(verbatim: title)
                         .font(.headline.weight(.bold))
                         .foregroundStyle(theme.ctaTextColor)
                         .multilineTextAlignment(.center)
@@ -44,8 +45,9 @@ struct PaywallContinueButton: View {
             .clipShape(RoundedRectangle(cornerRadius: theme.cornerRadius, style: .continuous))
         }
         .disabled(isDisabled || isLoading)
-        // The title Text disappears while loading, leaving the button unlabelled otherwise
-        .accessibilityLabel(isLoading ? "Processing purchase" : title)
+        // The title Text disappears while loading, leaving the button unlabelled otherwise.
+        // Explicit Text values: our own copy localizes, the app-supplied title stays verbatim.
+        .accessibilityLabel(isLoading ? Text("Processing purchase") : Text(verbatim: title))
         .padding(.horizontal, 24)
     }
 }
