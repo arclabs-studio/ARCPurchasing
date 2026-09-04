@@ -8,25 +8,34 @@
 import ARCPurchasing
 import SwiftUI
 
-/// Side-by-side subscription product cards (e.g., Monthly | Yearly).
+/// Subscription product cards (e.g., Monthly | Yearly).
 ///
-/// Handles selection state, savings badge overlay on the highlighted card,
-/// and monthly-equivalent price display.
+/// Handles selection state, savings badge on the highlighted card, and
+/// monthly-equivalent price display. The cards sit side by side at standard
+/// content sizes and stack vertically at accessibility sizes, where there is no
+/// horizontal room left for the text to grow into.
 struct PaywallSubscriptionCardsView: View {
     let products: [PurchaseProduct]
     let selectedProductID: String?
     let highlightedProductID: String?
-    let badges: [String: String] // productID -> badge text
+    let badges: [String: PaywallBadge] // productID -> badge
+    let layoutMode: PaywallLayoutMode
     let theme: PaywallTheme
     let onSelect: (PurchaseProduct) -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        // AnyLayout keeps card identity — and therefore selection state — across the swap
+        let layout = layoutMode == .scrolling
+            ? AnyLayout(VStackLayout(spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+
+        layout {
             ForEach(products) { product in
                 SubscriptionCard(product: product,
                                  isSelected: product.id == selectedProductID,
                                  isHighlighted: product.id == highlightedProductID,
                                  badge: badges[product.id],
+                                 layoutMode: layoutMode,
                                  theme: theme,
                                  onTap: { onSelect(product) })
             }
@@ -41,7 +50,8 @@ private struct SubscriptionCard: View {
     let product: PurchaseProduct
     let isSelected: Bool
     let isHighlighted: Bool
-    let badge: String?
+    let badge: PaywallBadge?
+    let layoutMode: PaywallLayoutMode
     let theme: PaywallTheme
     let onTap: () -> Void
 
@@ -58,84 +68,86 @@ private struct SubscriptionCard: View {
                                   lineWidth: isSelected ? 2 : 1))
         }
         .buttonStyle(.plain)
+        // The visible content already reads price + period + savings; VoiceOver gets the same
+        // in one stop instead of two, plus the selection state the border alone can't convey
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .overlay(alignment: .top) {
-            if let badge {
+            // The floating badge only fits the card at standard sizes; larger text renders it inline.
+            // Hidden from VoiceOver — its text is folded into accessibilityLabel above, since as a
+            // sibling overlay it isn't part of the button's accessibility element.
+            if layoutMode == .pinned, let badge {
                 badgeView(badge)
                     .offset(y: -12)
+                    .accessibilityHidden(true)
             }
         }
     }
 
+    /// Folds the visible lines into one VoiceOver stop. Composed as `Text` rather than a
+    /// `String` so our own copy keeps the localizing initializer while store data stays verbatim.
+    private var accessibilityLabel: Text {
+        var label = product.paywallPeriodCopy.text
+        label = label + separatorText + Text(verbatim: product.displayPrice)
+        if let bottomCopy = product.paywallBottomCopy {
+            label = label + separatorText + bottomCopy.text
+        }
+        if let badge {
+            label = label + separatorText + badge.copy.text
+        }
+        return label
+    }
+
+    private var separatorText: Text {
+        Text(verbatim: ", ")
+    }
+
     private var cardContent: some View {
         VStack(spacing: 4) {
+            if layoutMode == .scrolling, let badge {
+                badgeView(badge)
+                    .padding(.bottom, 2)
+            }
+
             // Period label (e.g., "MONTHLY", "YEARLY")
-            Text(periodLabel)
+            product.paywallPeriodCopy.text
                 .font(.caption.weight(.semibold))
                 .tracking(1.0)
                 .foregroundStyle(theme.secondaryTextColor)
+                .wrappingText()
 
-            // Price
-            Text(product.displayPrice)
+            // Price — never truncated, at any content size
+            Text(verbatim: product.displayPrice)
                 .font(.title2.bold())
                 .foregroundStyle(theme.primaryTextColor)
+                .wrappingText()
 
             // Monthly equivalent or "per month" label
-            Text(bottomLabel)
+            bottomLabelText
                 .font(.caption)
                 .foregroundStyle(theme.secondaryTextColor)
+                .wrappingText()
         }
+        .multilineTextAlignment(.center)
     }
 
-    private func badgeView(_ text: String) -> some View {
-        Text(text)
+    /// Products without a subscription period keep an empty line so the cards stay the
+    /// same height whether or not there is a bottom label to show.
+    private var bottomLabelText: Text {
+        product.paywallBottomCopy?.text ?? Text(verbatim: "")
+    }
+
+    private func badgeView(_ badge: PaywallBadge) -> some View {
+        badge.copy.text
             .font(.caption2.weight(.bold))
             .tracking(0.5)
             .foregroundStyle(theme.ctaTextColor)
+            .wrappingText()
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(theme.accentColor)
             .clipShape(Capsule())
     }
-
-    /// "MONTHLY" / "YEARLY" / period-based label
-    private var periodLabel: String {
-        guard let period = product.subscriptionPeriod else {
-            return product.displayName.uppercased()
-        }
-        switch (period.value, period.unit) {
-        case (1, .month): return "MONTHLY"
-        case (1, .year), (12, .month): return "YEARLY"
-        case (3, .month): return "QUARTERLY"
-        case (6, .month): return "6 MONTHS"
-        default:
-            if period.value == 1 {
-                return period.unit.rawValue.uppercased()
-            }
-            return "\(period.value) \(period.unit.rawValue.uppercased())S"
-        }
-    }
-
-    /// Shows monthly equivalent for yearly; "per month" for monthly
-    private var bottomLabel: String {
-        guard let period = product.subscriptionPeriod else { return "" }
-        let totalMonths = period.totalMonths
-        guard totalMonths > 1 else { return "per month" }
-        // Monthly equivalent
-        let equivalent = product.price / Decimal(totalMonths)
-        let formatted = formatDecimal(equivalent, currencyCode: product.currencyCode)
-        return "\(formatted)/month"
-    }
-}
-
-// MARK: - Helpers
-
-private func formatDecimal(_ value: Decimal, currencyCode: String) -> String {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    formatter.currencyCode = currencyCode
-    formatter.maximumFractionDigits = 2
-    formatter.minimumFractionDigits = 2
-    return formatter.string(from: value as NSDecimalNumber) ?? "\(value)"
 }
 
 // MARK: - Previews
@@ -152,7 +164,8 @@ private func formatDecimal(_ value: Decimal, currencyCode: String) -> String {
     return PaywallSubscriptionCardsView(products: [monthly, yearly],
                                         selectedProductID: "yearly",
                                         highlightedProductID: "yearly",
-                                        badges: ["yearly": "SAVE 42%"],
+                                        badges: ["yearly": .savings(42)],
+                                        layoutMode: .pinned,
                                         theme: .darkBurgundy,
                                         onSelect: { _ in })
         .padding(.vertical, 24)
@@ -171,9 +184,33 @@ private func formatDecimal(_ value: Decimal, currencyCode: String) -> String {
     return PaywallSubscriptionCardsView(products: [monthly, yearly],
                                         selectedProductID: "yearly",
                                         highlightedProductID: "yearly",
-                                        badges: ["yearly": "SAVE 42%"],
+                                        badges: ["yearly": .savings(42)],
+                                        layoutMode: .pinned,
                                         theme: .lightGold,
                                         onSelect: { _ in })
         .padding(.vertical, 24)
         .background(PaywallTheme.lightGold.backgroundColor)
+}
+
+#Preview("Dark — AX5") {
+    let monthly = PurchaseProduct(id: "monthly", displayName: "Monthly", description: "",
+                                  price: 4.99, displayPrice: "$4.99", currencyCode: "USD",
+                                  type: .autoRenewableSubscription,
+                                  subscriptionPeriod: SubscriptionPeriod(value: 1, unit: .month))
+    let yearly = PurchaseProduct(id: "yearly", displayName: "Yearly", description: "",
+                                 price: 34.99, displayPrice: "$34.99", currencyCode: "USD",
+                                 type: .autoRenewableSubscription,
+                                 subscriptionPeriod: SubscriptionPeriod(value: 1, unit: .year))
+    return ScrollView {
+        PaywallSubscriptionCardsView(products: [monthly, yearly],
+                                     selectedProductID: "yearly",
+                                     highlightedProductID: "yearly",
+                                     badges: ["yearly": .savings(42)],
+                                     layoutMode: .scrolling,
+                                     theme: .darkBurgundy,
+                                     onSelect: { _ in })
+            .padding(.vertical, 24)
+    }
+    .background(PaywallTheme.darkBurgundy.backgroundColor)
+    .environment(\.dynamicTypeSize, .accessibility5)
 }

@@ -52,6 +52,8 @@ public struct ARCPaywallView: View {
 
     @State private var purchaseManager = ARCPurchaseManager.shared
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     // Products
     @State private var subscriptionProducts: [PurchaseProduct] = []
     @State private var lifetimeProduct: PurchaseProduct?
@@ -133,6 +135,7 @@ public struct ARCPaywallView: View {
         ProgressView()
             .tint(theme.accentColor)
             .scaleEffect(1.5)
+            .accessibilityLabel("Loading products")
     }
 
     private func errorView(_ message: String) -> some View {
@@ -153,62 +156,33 @@ public struct ARCPaywallView: View {
 
     // MARK: - Paywall Content
 
-    private var paywallContent: some View {
-        VStack(spacing: 0) {
-            ScrollView {
-                VStack(spacing: 16) {
-                    PaywallHeaderView(configuration: configuration,
-                                      theme: theme)
-
-                    if !configuration.features.isEmpty {
-                        PaywallFeatureListView(features: configuration.features,
-                                               theme: theme)
-                    }
-                }
-                .padding(.bottom, 12)
-            }
-            .scrollBounceBehavior(.basedOnSize)
-
-            // Pinned bottom: products + CTA + footer always visible
-            VStack(spacing: 0) {
-                // Products pinned above CTA — keeps selection spatially adjacent to action
-                VStack(spacing: 10) {
-                    if !subscriptionProducts.isEmpty {
-                        PaywallSubscriptionCardsView(products: subscriptionProducts,
-                                                     selectedProductID: selectedProductID,
-                                                     highlightedProductID: configuration.highlightedProductID,
-                                                     badges: computedBadges,
-                                                     theme: theme,
-                                                     onSelect: { selectedProductID = $0.id })
-                    }
-
-                    if let lifetime = lifetimeProduct {
-                        PaywallLifetimeCardView(product: lifetime,
-                                                subtitle: configuration.lifetimeSubtitle,
-                                                isSelected: selectedProductID == lifetime.id,
-                                                theme: theme,
-                                                onTap: { selectedProductID = lifetime.id })
-                    }
-                }
-                .padding(.vertical, 16)
-
-                PaywallContinueButton(title: configuration.ctaButtonTitle,
-                                      isLoading: purchaseManager.isPurchasing,
-                                      isDisabled: selectedProductID == nil,
-                                      theme: theme,
-                                      action: { Task { await purchase() } })
-
-                PaywallFooterView(renewalDisclosure: configuration.renewalDisclosure,
-                                  termsOfServiceURL: configuration.termsOfServiceURL,
-                                  privacyPolicyURL: configuration.privacyPolicyURL,
-                                  theme: theme,
-                                  onRestore: { Task { await restore() } },
-                                  isRestoring: purchaseManager.isRestoring)
-            }
-            .padding(.top, 8)
-            .background(theme.backgroundColor)
-            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24))
-            .shadow(color: .black.opacity(0.18), radius: 16, x: 0, y: -4)
+    @ViewBuilder private var paywallContent: some View {
+        // Accessibility content sizes dissolve the pinned bottom block into one scrolling column
+        switch PaywallLayoutMode(dynamicTypeSize: dynamicTypeSize) {
+        case .pinned:
+            PaywallPinnedLayout(configuration: configuration,
+                                theme: theme,
+                                subscriptionProducts: subscriptionProducts,
+                                lifetimeProduct: lifetimeProduct,
+                                selectedProductID: selectedProductID,
+                                badges: computedBadges,
+                                isPurchasing: purchaseManager.isPurchasing,
+                                isRestoring: purchaseManager.isRestoring,
+                                onSelect: { selectedProductID = $0 },
+                                onPurchase: { Task { await purchase() } },
+                                onRestore: { Task { await restore() } })
+        case .scrolling:
+            PaywallScrollingLayout(configuration: configuration,
+                                   theme: theme,
+                                   subscriptionProducts: subscriptionProducts,
+                                   lifetimeProduct: lifetimeProduct,
+                                   selectedProductID: selectedProductID,
+                                   badges: computedBadges,
+                                   isPurchasing: purchaseManager.isPurchasing,
+                                   isRestoring: purchaseManager.isRestoring,
+                                   onSelect: { selectedProductID = $0 },
+                                   onPurchase: { Task { await purchase() } },
+                                   onRestore: { Task { await restore() } })
         }
     }
 
@@ -227,6 +201,7 @@ public struct ARCPaywallView: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
+        .accessibilityLabel("Close")
         .padding(.top, 20)
         .padding(.trailing, 16)
     }
@@ -259,7 +234,7 @@ private extension ARCPaywallView {
             }
 
             guard !targetProducts.isEmpty else {
-                loadingState = .error("No products available. Please try again later.")
+                loadingState = .error(String(localized: "No products available. Please try again later."))
                 return
             }
 
@@ -313,7 +288,7 @@ private extension ARCPaywallView {
             case .restored:
                 onPurchaseCompleted?(.restored)
             case .unknown:
-                purchaseError = "An unknown error occurred. Please try again."
+                purchaseError = String(localized: "An unknown error occurred. Please try again.")
                 onPurchaseCompleted?(.unknown)
             }
         } catch {
@@ -335,14 +310,16 @@ private extension ARCPaywallView {
     // MARK: Badge Calculation
 
     /// Merges auto-calculated savings badges with `badgeOverrides`.
-    /// Manual overrides always take precedence.
-    var computedBadges: [String: String] {
+    /// Manual overrides always take precedence, and stay verbatim — they are the app's
+    /// own copy, already localized by the app.
+    var computedBadges: [String: PaywallBadge] {
+        let overrides = configuration.badgeOverrides.mapValues(PaywallBadge.custom)
         guard configuration.autoCalculateSavings else {
-            return configuration.badgeOverrides
+            return overrides
         }
 
         var badges = savingsBadges(for: subscriptionProducts)
-        for (id, badge) in configuration.badgeOverrides {
+        for (id, badge) in overrides {
             badges[id] = badge
         }
         return badges
@@ -350,7 +327,7 @@ private extension ARCPaywallView {
 
     /// Calculates "SAVE X%" badges for subscriptions with >1-month periods,
     /// using the monthly product as the baseline.
-    func savingsBadges(for products: [PurchaseProduct]) -> [String: String] {
+    func savingsBadges(for products: [PurchaseProduct]) -> [String: PaywallBadge] {
         guard products.count > 1 else { return [:] }
 
         // Find the monthly baseline product
@@ -359,7 +336,7 @@ private extension ARCPaywallView {
         }
         guard let monthlyPrice = monthly?.price, monthlyPrice > 0 else { return [:] }
 
-        var badges: [String: String] = [:]
+        var badges: [String: PaywallBadge] = [:]
         for product in products {
             guard product.id != monthly?.id,
                   let period = product.subscriptionPeriod else { continue }
@@ -370,7 +347,7 @@ private extension ARCPaywallView {
             let savings = (1 - monthlyEquivalent / monthlyPrice) * 100
             let savingsInt = Int((savings as NSDecimalNumber).doubleValue.rounded())
             if savingsInt > 0 {
-                badges[product.id] = "SAVE \(savingsInt)%"
+                badges[product.id] = .savings(savingsInt)
             }
         }
         return badges
@@ -484,4 +461,18 @@ private let _previewConfigNoLifetime = PaywallConfiguration(headerLabel: "FORKS 
     ARCPaywallView(configuration: _previewConfigNoLifetime,
                    theme: .darkBurgundy,
                    previewProducts: Array(ARCPaywallView.previewMockProducts.prefix(2)))
+}
+
+#Preview("Dark — AX5") {
+    ARCPaywallView(configuration: _previewConfig,
+                   theme: .darkBurgundy,
+                   previewProducts: ARCPaywallView.previewMockProducts)
+        .environment(\.dynamicTypeSize, .accessibility5)
+}
+
+#Preview("Light — AX5") {
+    ARCPaywallView(configuration: _previewConfig,
+                   theme: .lightGold,
+                   previewProducts: ARCPaywallView.previewMockProducts)
+        .environment(\.dynamicTypeSize, .accessibility5)
 }
