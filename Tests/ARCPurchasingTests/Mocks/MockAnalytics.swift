@@ -6,13 +6,23 @@
 //
 
 import Foundation
+import os
 @testable import ARCPurchasing
 
 /// Mock implementation of ``PurchaseAnalytics`` for testing.
-final class MockAnalytics: PurchaseAnalytics, @unchecked Sendable {
+final class MockAnalytics: PurchaseAnalytics {
+    private struct State {
+        var trackedEvents: [PurchaseEvent] = []
+    }
+
+    private let state = OSAllocatedUnfairLock(initialState: State())
+
     // MARK: - Call Tracking
 
-    private(set) var trackedEvents: [PurchaseEvent] = []
+    var trackedEvents: [PurchaseEvent] {
+        state.withLock { $0.trackedEvents }
+    }
+
     var trackCalled: Bool {
         !trackedEvents.isEmpty
     }
@@ -20,14 +30,14 @@ final class MockAnalytics: PurchaseAnalytics, @unchecked Sendable {
     // MARK: - PurchaseAnalytics
 
     func track(_ event: PurchaseEvent) async {
-        trackedEvents.append(event)
+        state.withLock { $0.trackedEvents.append(event) }
     }
 
     // MARK: - Helpers
 
     /// Reset tracked events.
     func reset() {
-        trackedEvents = []
+        state.withLock { $0.trackedEvents = [] }
     }
 
     /// Check if a specific event type was tracked.
