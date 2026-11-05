@@ -6,10 +6,13 @@
 //
 
 import ARCPurchasing
+import os
 import SwiftUI
 
 @main
 struct ARCPurchasingDemoAppApp: App {
+    private static let logger = Logger(subsystem: "com.arclabs.ARCPurchasingDemoApp", category: "Setup")
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -33,9 +36,9 @@ struct ARCPurchasingDemoAppApp: App {
 
         do {
             try await ARCPurchaseManager.shared.configure(with: config, provider: provider)
-            print("ARCPurchasing configured successfully (StoreKit 2)")
+            logger.info("ARCPurchasing configured successfully (StoreKit 2)")
         } catch {
-            print("Failed to configure ARCPurchasing: \(error)")
+            logger.error("Failed to configure ARCPurchasing: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
