@@ -6,7 +6,7 @@
 //
 //  Smoke tests that exercise `ARCPurchaseManager` end-to-end with the
 //  `StoreKit2Provider`. SKTestSession-driven purchase flows are deferred
-//  to the consuming app (`Example/`) because StoreKit 2 product lookups
+//  to the consuming app (`Examples/`) because StoreKit 2 product lookups
 //  require a hosting bundle that `swift test` does not provide.
 //
 
