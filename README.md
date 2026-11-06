@@ -480,7 +480,7 @@ Use this checklist before submitting a new app or adding IAP to an existing one.
 
 ## Example App
 
-See `Example/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstrating:
+See `Examples/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstrating:
 
 - Product fetching and display
 - Purchase flow with loading states
@@ -488,7 +488,7 @@ See `Example/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstr
 - Subscription status display
 - Restore purchases
 
-Follow the setup instructions in the [Example README](Example/ARCPurchasingDemoApp/README.md).
+Follow the setup instructions in the [Example README](Examples/ARCPurchasingDemoApp/README.md).
 
 ---
 

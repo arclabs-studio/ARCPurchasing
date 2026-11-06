@@ -1,12 +1,12 @@
 {
-  "originHash" : "c7e7594c85301ebadb6ea4b764405cbaa84d7c61455f2b1997a5cfac12d88d8f",
+  "originHash" : "43e9f3f0e44387d58a2581f81d1c5c41d6cd43791eb5e000cc47b63fa0871949",
   "pins" : [
     {
       "identity" : "arclogger",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/arclabs-studio/ARCLogger",
       "state" : {
-        "revision" : "c6fcb3571628d315e9fc7c00f28c12ac99fe42ca",
+        "revision" : "7b56390c44a437fc3861e5f7d5a69f114ade08e9",
         "version" : "1.0.0"
       }
     },
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RevenueCat/purchases-ios",
       "state" : {
-        "revision" : "abb0d68c3e7ba97b16ab51c38fcaca16b0e358c8",
-        "version" : "5.66.0"
+        "revision" : "193efe58cf61f9d59da4076dd394490ae59e86a9",
+        "version" : "5.102.0"
       }
     }
   ],

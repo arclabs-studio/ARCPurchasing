@@ -55,7 +55,8 @@ private let demoConfiguration = PaywallConfiguration(headerLabel: "ARC DEMO PREM
                                                      features: [.init(highlightedText: "Unlimited access",
                                                                       description: "to all premium features"),
                                                                 .init(highlightedText: "No ads",
-                                                                      description: "enjoy a clean, distraction-free experience"),
+                                                                      description: "enjoy a clean, "
+                                                                          + "distraction-free experience"),
                                                                 .init(highlightedText: "Priority support",
                                                                       description: "get help faster when you need it")],
                                                      highlightedProductID: "com.app.premium.yearly",

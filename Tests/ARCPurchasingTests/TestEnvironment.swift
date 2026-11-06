@@ -14,7 +14,7 @@ enum TestEnvironment {
     /// real StoreKit 2 stack. These tests require a hosting bundle and are
     /// skipped under `swift test` (and on CI) because `Transaction.updates`
     /// and `Transaction.currentEntitlements` hang when no host bundle is
-    /// available. The same flows are covered end-to-end in `Example/`.
+    /// available. The same flows are covered end-to-end in `Examples/`.
     static var runsStoreKitIntegrationTests: Bool {
         ProcessInfo.processInfo.environment["ARCP_RUN_SK2_INTEGRATION"] == "1"
     }
