@@ -62,6 +62,7 @@ public struct ARCPaywallView: View {
     // Loading state
     @State private var loadingState: LoadingState = .loading
     @State private var purchaseError: String?
+    @State private var isShowingPurchaseError = false
 
     // MARK: - Initialization
 
@@ -117,15 +118,10 @@ public struct ARCPaywallView: View {
             await purchaseManager.track(.paywallViewed(paywallID: configuration.offeringIdentifier))
             await loadProducts()
         }
-        .alert("Purchase Error", isPresented: Binding(get: { purchaseError != nil },
-                                                      set: {
-                                                          if !$0 {
-                                                              purchaseError = nil
-                                                          }
-                                                      })) {
+        .alert("Purchase Error", isPresented: $isShowingPurchaseError, presenting: purchaseError) { _ in
             Button("OK") { purchaseError = nil }
-        } message: {
-            Text(purchaseError ?? "")
+        } message: { message in
+            Text(message)
         }
     }
 
@@ -283,17 +279,22 @@ private extension ARCPaywallView {
             case .pending:
                 onPurchaseCompleted?(.pending)
             case let .requiresAction(message):
-                purchaseError = message
+                presentPurchaseError(message)
                 onPurchaseCompleted?(.requiresAction(message))
             case .restored:
                 onPurchaseCompleted?(.restored)
             case .unknown:
-                purchaseError = String(localized: "An unknown error occurred. Please try again.")
+                presentPurchaseError(String(localized: "An unknown error occurred. Please try again."))
                 onPurchaseCompleted?(.unknown)
             }
         } catch {
-            purchaseError = error.localizedDescription
+            presentPurchaseError(error.localizedDescription)
         }
+    }
+
+    private func presentPurchaseError(_ message: String) {
+        purchaseError = message
+        isShowingPurchaseError = true
     }
 
     // MARK: Restore
@@ -303,7 +304,7 @@ private extension ARCPaywallView {
             try await purchaseManager.restorePurchases()
             onPurchaseCompleted?(.restored)
         } catch {
-            purchaseError = error.localizedDescription
+            presentPurchaseError(error.localizedDescription)
         }
     }
 

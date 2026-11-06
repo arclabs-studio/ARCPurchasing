@@ -7,9 +7,12 @@
 
 import ARCPurchasing
 import ARCPurchasingUI
+import os
 import SwiftUI
 
 struct ContentView: View {
+    private static let logger = Logger(subsystem: "com.arclabs.ARCPurchasingDemoApp", category: "Restore")
+
     @State private var purchaseManager = ARCPurchaseManager.shared
     @State private var showPaywall = false
 
@@ -131,7 +134,7 @@ struct ContentView: View {
         do {
             try await purchaseManager.restorePurchases()
         } catch {
-            print("Restore failed: \(error)")
+            Self.logger.error("Restore failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 }
