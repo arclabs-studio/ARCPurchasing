@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-06
+
+### Changed
+
+- **`AnySendable` is now checked `Sendable`. This is source-breaking.** It stores `any Sendable` instead of `Any` behind `@unchecked Sendable`, so `init(_:)` takes `any Sendable` and `value` is typed `any Sendable`. Code that wraps a non-`Sendable` value, or a value typed as plain `Any`, no longer compiles. Conform the type to `Sendable` or wrap a `Sendable` projection of it. Reading the value back with `value as? SomeType` works as before. The package's own uses are unaffected: StoreKit `Product` and RevenueCat `StoreProduct`, which back `PurchaseProduct.underlyingProduct`, already conform ([#26](https://github.com/arclabs-studio/ARCPurchasing/pull/26)).
+- **`ARCPaywallView`'s purchase-error alert binds to a state flag.** It uses `alert(_:isPresented:presenting:)` instead of a hand-built `Binding(get:set:)`. Errors from a purchase that needs action, an unknown purchase result, a failed purchase or a failed restore show the same "Purchase Error" alert as before ([#26](https://github.com/arclabs-studio/ARCPurchasing/pull/26)).
+
+### Examples
+
+- The demo app moved from `Example/` to `Examples/`, logs with `os.Logger` instead of `print`, and no longer force-unwraps its legal URLs ([#25](https://github.com/arclabs-studio/ARCPurchasing/pull/25), [#26](https://github.com/arclabs-studio/ARCPurchasing/pull/26)).
+
 ## [1.0.1] - 2026-09-04
 
 ### Fixed
