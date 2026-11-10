@@ -55,7 +55,8 @@ private let demoConfiguration = PaywallConfiguration(headerLabel: "ARC DEMO PREM
                                                      features: [.init(highlightedText: "Unlimited access",
                                                                       description: "to all premium features"),
                                                                 .init(highlightedText: "No ads",
-                                                                      description: "enjoy a clean, distraction-free experience"),
+                                                                      description: "enjoy a clean, "
+                                                                          + "distraction-free experience"),
                                                                 .init(highlightedText: "Priority support",
                                                                       description: "get help faster when you need it")],
                                                      highlightedProductID: "com.app.premium.yearly",
@@ -63,8 +64,20 @@ private let demoConfiguration = PaywallConfiguration(headerLabel: "ARC DEMO PREM
                                                      lifetimeSubtitle: "One-time purchase · Limited offer",
                                                      ctaButtonTitle: "Get Premium",
                                                      renewalDisclosure: "Renews automatically. Cancel anytime.",
-                                                     termsOfServiceURL: URL(string: "https://example.com/terms")!,
-                                                     privacyPolicyURL: URL(string: "https://example.com/privacy")!)
+                                                     termsOfServiceURL: .demoLink("https://example.com/terms"),
+                                                     privacyPolicyURL: .demoLink("https://example.com/privacy"))
+
+// MARK: - Demo Links
+
+private extension URL {
+    /// Parses a hard-coded demo link. A literal that does not parse is a programmer error.
+    static func demoLink(_ string: String) -> URL {
+        guard let url = URL(string: string) else {
+            preconditionFailure("Invalid demo URL literal: \(string)")
+        }
+        return url
+    }
+}
 
 // MARK: - Previews
 

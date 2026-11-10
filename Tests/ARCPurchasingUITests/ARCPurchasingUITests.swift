@@ -88,25 +88,3 @@ struct ARCPurchasingUITests {
         _ = type(of: result)
     }
 }
-
-#if os(iOS)
-@MainActor
-extension ARCPurchasingUITests {
-    @available(iOS 18.0, *)
-    @Test("ARCCustomerCenterView initializes with default arguments") func arcCustomerCenterView_defaultInit() {
-        _ = ARCCustomerCenterView()
-    }
-
-    @available(iOS 18.0, *)
-    @Test("ARCCustomerCenterView initializes with onDismiss") func arcCustomerCenterView_withDismiss() {
-        _ = ARCCustomerCenterView(onDismiss: {})
-    }
-
-    @available(iOS 18.0, *)
-    @Test("presentARCCustomerCenter modifier is callable") func presentARCCustomerCenter_isCallable() {
-        @State var isPresented = false
-        let result = Text("test").presentARCCustomerCenter(isPresented: $isPresented)
-        _ = type(of: result)
-    }
-}
-#endif

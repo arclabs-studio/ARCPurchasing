@@ -236,14 +236,14 @@ public enum PaymentMode: String, Sendable, Equatable, CaseIterable {
 /// Type-erased wrapper for Sendable values.
 ///
 /// Used to store provider-specific product types while maintaining Sendable conformance.
-public struct AnySendable: @unchecked Sendable {
+public struct AnySendable: Sendable {
     /// The wrapped value.
-    public let value: Any
+    public let value: any Sendable
 
     /// Creates a type-erased sendable wrapper.
     ///
     /// - Parameter value: The value to wrap.
-    public init(_ value: Any) {
+    public init(_ value: any Sendable) {
         self.value = value
     }
 }

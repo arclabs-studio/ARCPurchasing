@@ -3,7 +3,7 @@
 ![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)
 ![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20macOS%20%7C%20watchOS%20%7C%20tvOS%20%7C%20visionOS-blue.svg)
 ![License](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-orange.svg)
-![Version](https://img.shields.io/badge/Version-1.0.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)
 
 **In-App Purchase management for ARC Labs Studio apps**
 
@@ -480,7 +480,7 @@ Use this checklist before submitting a new app or adding IAP to an existing one.
 
 ## Example App
 
-See `Example/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstrating:
+See `Examples/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstrating:
 
 - Product fetching and display
 - Purchase flow with loading states
@@ -488,7 +488,7 @@ See `Example/ARCPurchasingDemoApp/` for a standalone demo Xcode project demonstr
 - Subscription status display
 - Restore purchases
 
-Follow the setup instructions in the [Example README](Example/ARCPurchasingDemoApp/README.md).
+Follow the setup instructions in the [Example README](Examples/ARCPurchasingDemoApp/README.md).
 
 ---
 
